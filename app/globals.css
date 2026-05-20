@@ -1,26 +1,131 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-sans: var(--font-manrope);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font-family: var(--font-sans), sans-serif;
+  background-image: radial-gradient(circle at 10% 0%, #eef8f3 0%, #f7faf9 45%, #f2f5f9 100%);
+  min-height: 100vh;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes qr-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes qr-float-delayed {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(10px) translateX(-8px);
+  }
+}
+
+@keyframes qr-scan {
+  0% {
+    transform: translateY(-80px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(230px);
+    opacity: 0;
+  }
+}
+
+@keyframes qr-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+.qr-float {
+  animation: qr-float 5.6s ease-in-out infinite;
+}
+
+.qr-float-delayed {
+  animation: qr-float-delayed 6.2s ease-in-out infinite;
+}
+
+.qr-scan-line {
+  animation: qr-scan 3.6s linear infinite;
+}
+
+.qr-pixel {
+  animation: qr-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes menu-blob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0) scale(1.05);
+  }
+}
+
+@keyframes menu-blob-fast {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8px, 10px, 0) scale(1.08);
+  }
+}
+
+@keyframes menu-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-blob-slow {
+  animation: menu-blob 7.5s ease-in-out infinite;
+}
+
+.menu-blob-fast {
+  animation: menu-blob-fast 5.8s ease-in-out infinite;
+}
+
+.menu-fade-in {
+  animation: menu-fade-in 480ms ease-out both;
 }

@@ -1,103 +1,422 @@
 import Image from "next/image";
+import { headers } from "next/headers";
 
-export default function Home() {
+import { MarketingFooter } from "@/components/marketing/marketing-footer";
+import { MarketingHeader } from "@/components/marketing/marketing-header";
+import { PricingGrid } from "@/components/marketing/pricing-grid";
+import { LoadingLink } from "@/components/ui/loading-link";
+import { SectionDivider } from "@/components/marketing/section-divider";
+import { FAQ_ITEMS, FEATURE_BLOCKS } from "@/lib/marketing-content";
+import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
+
+type HomeLocale = "tr" | "en";
+
+interface QuickLink {
+  href: string;
+  title: string;
+  text: string;
+}
+
+interface StatItem {
+  label: string;
+  value: string;
+}
+
+const SLOGAN_ITEMS: Record<HomeLocale, string[]> = {
+  tr: [
+    "Müşteri QR'ı okutur, menüye anında girer.",
+    "Fotoğraflı ürün kartlarıyla karar süresi kısalır.",
+    "Daha hızlı seçim, daha yüksek masa dönüşü.",
+  ],
+  en: [
+    "Guests scan the QR and enter the menu instantly.",
+    "Photo-rich product cards shorten decision time.",
+    "Faster choices, higher table turnover.",
+  ],
+};
+
+const QUICK_LINKS: Record<HomeLocale, QuickLink[]> = {
+  tr: [
+    { href: "/features", title: "Özellikler", text: "Tüm modülleri detaylı inceleyin." },
+    { href: "/pricing", title: "Paketler", text: "İşletmenize uygun planı seçin." },
+    { href: "/purchase", title: "Sistem Satın Al", text: "Satış ekibine plan talebi bırakın." },
+    { href: "/stands", title: "QR Stant Siparişi", text: "Masa sayısına göre stant siparişi verin." },
+    { href: "/about", title: "Hakkımızda", text: "Platform yaklaşımımızı öğrenin." },
+    { href: "/contact", title: "İletişim", text: "Satış ve destek ekibine ulaşın." },
+  ],
+  en: [
+    { href: "/features", title: "Features", text: "Explore all modules in detail." },
+    { href: "/pricing", title: "Plans", text: "Choose the right plan for your business." },
+    { href: "/purchase", title: "Buy the System", text: "Submit your plan request to sales." },
+    { href: "/stands", title: "Order QR Stands", text: "Order stands based on your table count." },
+    { href: "/about", title: "About", text: "Learn our product approach." },
+    { href: "/contact", title: "Contact", text: "Reach sales and support." },
+  ],
+};
+
+const STATS: Record<HomeLocale, StatItem[]> = {
+  tr: [
+    { label: "Kurulum", value: "5 dk" },
+    { label: "Dil Desteği", value: "4 Dil" },
+    { label: "Yayın", value: "Anında" },
+  ],
+  en: [
+    { label: "Setup", value: "5 min" },
+    { label: "Language Support", value: "4 Languages" },
+    { label: "Publishing", value: "Instant" },
+  ],
+};
+
+const FEATURE_BLOCKS_EN = [
+  {
+    title: "Product Variations",
+    description:
+      "Define size, weight, or portion options under a single product and reflect pricing automatically.",
+  },
+  {
+    title: "Allergen Warnings",
+    description:
+      "Display allergen details clearly on each product card and provide a safer choice experience.",
+  },
+  {
+    title: "Product Labels",
+    description: "Highlight key items with tags like Chef's Special, New, or Deal.",
+  },
+];
+
+const FAQ_ITEMS_EN = [
+  {
+    question: "How long does setup take?",
+    answer: "Most businesses complete registration, profile setup, and first menu publish in 10 minutes.",
+  },
+  {
+    question: "How do we get the QR code?",
+    answer: "It is generated automatically on Dashboard > QR Code and can be downloaded as PNG.",
+  },
+  {
+    question: "Do you support multiple languages?",
+    answer: "Yes. Public menu supports TR, EN, RU, and AR.",
+  },
+  {
+    question: "Do we need technical knowledge?",
+    answer: "No. The interface is designed for non-technical business owners.",
+  },
+];
+
+const HOME_COPY = {
+  tr: {
+    heroTitleFirstLine: "Menünü dijitalleştir,",
+    heroTitleSecondLine: "masaya anında satış akışı kur.",
+    heroDescription:
+      "Restoran ve kafeler için sade ama güçlü panel. Kategorileri yönet, ürün fotoğraflarını yükle, public menünü yayınla ve QR kodunu anında indir.",
+    primaryCta: "Hemen Kayıt Ol",
+    secondaryCta: "Paketleri Gör",
+    previewTitle: "Canlı QR Önizleme",
+    previewBadge: "Aktif",
+    qrImageAlt: "QR kod önizleme",
+    previewFootnote: "Masadan okut, menüye anında geç.",
+    featuredSectionLabel: "Öne Çıkanlar",
+    liveSectionLabel: "Canlı Deneyim",
+    liveTitle: "QR okut, menünü aç, sipariş kararını hızlandır.",
+    liveDescription:
+      "Restoran içinde en kritik an, müşterinin menüye baktığı an. Bu deneyimi hızlı ve ikna edici hale getirip satışa çevir.",
+    livePrimaryCta: "Menümü Hemen Yayınla",
+    liveSecondaryCta: "Özellikleri İncele",
+    liveImageAlt: "Müşteri QR menüyü telefonundan inceliyor",
+    pricingSectionLabel: "Paketler",
+    standSectionLabel: "QR Stant",
+    standTitle: "Masalar için hazır QR stantlarını tek adımda sipariş verin.",
+    standDescription:
+      `Masa sayınızı girin, hazır tasarım seçin veya kendi tasarımınızı yükleyin. Stant başı ₺${STAND_UNIT_PRICE} fiyatla siparişler doğrudan operasyon panelimize düşer.`,
+    standPrimaryCta: "Stant Siparişi Ver",
+    standSecondaryCta: "Sistem Satın Al",
+    standImageAlt: "QR menü stand örneği",
+    exploreSectionLabel: "Keşfet",
+    faqSectionLabel: "SSS",
+  },
+  en: {
+    heroTitleFirstLine: "Digitize your menu,",
+    heroTitleSecondLine: "launch table-side sales instantly.",
+    heroDescription:
+      "A simple yet powerful panel for restaurants and cafes. Manage categories, upload product photos, publish your public menu, and download your QR code instantly.",
+    primaryCta: "Register Now",
+    secondaryCta: "View Plans",
+    previewTitle: "Live QR Preview",
+    previewBadge: "Active",
+    qrImageAlt: "QR code preview",
+    previewFootnote: "Scan at the table and open the menu instantly.",
+    featuredSectionLabel: "Highlights",
+    liveSectionLabel: "Live Experience",
+    liveTitle: "Scan QR, open menu, speed up order decisions.",
+    liveDescription:
+      "The most critical in-restaurant moment is when guests read the menu. Make that moment fast and persuasive to drive more sales.",
+    livePrimaryCta: "Publish My Menu",
+    liveSecondaryCta: "Explore Features",
+    liveImageAlt: "Customer browsing the QR menu on a phone",
+    pricingSectionLabel: "Plans",
+    standSectionLabel: "QR Stand",
+    standTitle: "Order ready-to-use table QR stands in one step.",
+    standDescription:
+      `Enter your table count, pick a preset design, or upload your own artwork. At ₺${STAND_UNIT_PRICE} per stand, orders drop directly into our operations panel.`,
+    standPrimaryCta: "Order QR Stands",
+    standSecondaryCta: "Buy the System",
+    standImageAlt: "QR menu stand sample",
+    exploreSectionLabel: "Explore",
+    faqSectionLabel: "FAQ",
+  },
+} as const;
+
+function resolveLocaleFromHeaders(requestHeaders: Headers): HomeLocale {
+  const countryHeaderNames = [
+    "x-vercel-ip-country",
+    "cf-ipcountry",
+    "x-country-code",
+    "x-appengine-country",
+  ];
+
+  for (const headerName of countryHeaderNames) {
+    const headerValue = requestHeaders.get(headerName)?.trim();
+    if (!headerValue) {
+      continue;
+    }
+
+    return headerValue.toUpperCase() === "TR" ? "tr" : "en";
+  }
+
+  const acceptLanguage = requestHeaders.get("accept-language")?.toLowerCase() ?? "";
+  return acceptLanguage.startsWith("tr") ? "tr" : "en";
+}
+
+export default async function HomePage() {
+  const requestHeaders = await headers();
+  const locale = resolveLocaleFromHeaders(requestHeaders);
+  const copy = HOME_COPY[locale];
+  const sloganItems = SLOGAN_ITEMS[locale];
+  const quickLinks = QUICK_LINKS[locale];
+  const stats = STATS[locale];
+  const featureBlocks = locale === "tr" ? FEATURE_BLOCKS.slice(0, 3) : FEATURE_BLOCKS_EN;
+  const faqItems = locale === "tr" ? FAQ_ITEMS.slice(0, 4) : FAQ_ITEMS_EN;
+  const ctaLoadingText = locale === "tr" ? "Yonlendiriliyor..." : "Redirecting...";
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="relative overflow-hidden" lang={locale}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(16,185,129,0.18),transparent_34%),radial-gradient(circle_at_88%_16%,rgba(14,165,233,0.16),transparent_38%),radial-gradient(circle_at_50%_84%,rgba(249,115,22,0.12),transparent_36%)]" />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+      <MarketingHeader locale={locale} />
+
+      <main className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-14 pt-10 md:pt-14">
+        <section className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+          <div className="space-y-6">
+            <h1 className="max-w-2xl text-4xl font-extrabold leading-[1.04] tracking-tight text-slate-900 md:text-5xl lg:text-6xl">
+              {copy.heroTitleFirstLine}
+              <span className="block bg-gradient-to-r from-emerald-600 via-cyan-600 to-sky-600 bg-clip-text text-transparent">
+                {copy.heroTitleSecondLine}
+              </span>
+            </h1>
+
+            <p className="max-w-xl text-sm leading-relaxed text-slate-600 md:text-base">{copy.heroDescription}</p>
+
+            <div className="flex flex-wrap gap-3">
+              <LoadingLink
+                href="/register"
+                className="rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-[0_10px_26px_rgba(5,150,105,0.28)] transition hover:translate-y-[-1px] hover:bg-emerald-700"
+                loadingText={ctaLoadingText}
+              >
+                {copy.primaryCta}
+              </LoadingLink>
+              <LoadingLink
+                href="/pricing"
+                className="rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
+                loadingText={ctaLoadingText}
+              >
+                {copy.secondaryCta}
+              </LoadingLink>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {stats.map((item) => (
+                <div key={item.label} className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
+                  <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
+                  <p className="mt-1 text-2xl font-extrabold text-slate-900">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="qr-float absolute -left-4 -top-4 h-20 w-20 rounded-2xl bg-emerald-200/70 blur-2xl" />
+            <div className="qr-float-delayed absolute -bottom-6 right-4 h-24 w-24 rounded-full bg-cyan-200/70 blur-2xl" />
+
+            <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white/95 p-5 shadow-[0_24px_60px_rgba(15,23,42,0.14)] backdrop-blur">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{copy.previewTitle}</p>
+                  <p className="text-sm font-bold text-slate-900">menu.qrmenum.app/novacafe</p>
+                </div>
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+                  {copy.previewBadge}
+                </span>
+              </div>
+
+              <div className="relative mx-auto w-full max-w-[310px] rounded-3xl border border-slate-200 bg-slate-950 p-5">
+                <div className="relative overflow-hidden rounded-2xl bg-white p-4">
+                  <div className="pointer-events-none absolute left-4 right-4 top-[20%] z-10 h-[2px] bg-gradient-to-r from-transparent via-emerald-300 to-transparent qr-scan-line" />
+                  <Image
+                    src="/qr_empty.png"
+                    alt={copy.qrImageAlt}
+                    width={1272}
+                    height={1278}
+                    className="h-auto w-full"
+                    priority={false}
+                  />
+                </div>
+
+                <div className="mt-4 rounded-xl bg-slate-900/65 px-3 py-2 text-xs text-slate-200">
+                  {copy.previewFootnote}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <SectionDivider label={copy.featuredSectionLabel} />
+
+        <section className="grid gap-4 md:grid-cols-3">
+          {featureBlocks.map((item) => (
+            <article
+              key={item.title}
+              className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur"
+            >
+              <h2 className="text-base font-extrabold text-slate-900">{item.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
+            </article>
+          ))}
+        </section>
+
+        <SectionDivider label={copy.liveSectionLabel} />
+
+        <section>
+          <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/70 p-5 text-slate-900 shadow-sm backdrop-blur-sm md:p-8">
+            <div className="relative grid gap-6 lg:grid-cols-[1fr_0.9fr] lg:items-start">
+              <div>
+                <h2 className="max-w-xl text-4xl font-extrabold leading-[1.08] tracking-tight md:text-5xl">
+                  {copy.liveTitle}
+                </h2>
+                <p className="mt-4 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">{copy.liveDescription}</p>
+
+                <ul className="mt-6 space-y-2.5 text-lg text-slate-700 md:text-xl">
+                  {sloganItems.map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <span className="mt-[11px] h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <LoadingLink
+                    href="/register"
+                    className="rounded-xl bg-emerald-500 px-5 py-2.5 text-base font-bold text-white transition hover:bg-emerald-400"
+                    loadingText={ctaLoadingText}
+                  >
+                    {copy.livePrimaryCta}
+                  </LoadingLink>
+                  <LoadingLink
+                    href="/features"
+                    className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-base font-bold text-slate-900 transition hover:bg-slate-100"
+                    loadingText={ctaLoadingText}
+                  >
+                    {copy.liveSecondaryCta}
+                  </LoadingLink>
+                </div>
+              </div>
+
+              <div className="relative mx-auto w-full max-w-sm pb-4 pr-3 lg:max-w-md lg:pb-6 lg:pr-6">
+                <div className="absolute inset-x-8 bottom-2 h-16 rounded-full bg-slate-400/35 blur-2xl" />
+                <Image
+                  src="/customer-qr-showcase.png"
+                  alt={copy.liveImageAlt}
+                  width={447}
+                  height={558}
+                  className="relative ml-auto h-auto w-[92%] object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.38)]"
+                  priority={false}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <SectionDivider label={copy.pricingSectionLabel} />
+        <section>
+          <PricingGrid />
+        </section>
+
+        <SectionDivider label={copy.standSectionLabel} />
+        <section className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+          <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/qr_stand.png"
+              alt={copy.standImageAlt}
+              width={1122}
+              height={1402}
+              className="h-full w-full object-cover"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+          </div>
+
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur md:p-8">
+            <h2 className="max-w-xl text-3xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-4xl">
+              {copy.standTitle}
+            </h2>
+            <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-600 md:text-lg">
+              {copy.standDescription}
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <LoadingLink
+                href="/stands"
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                loadingText={ctaLoadingText}
+              >
+                {copy.standPrimaryCta}
+              </LoadingLink>
+              <LoadingLink
+                href="/purchase"
+                className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
+                loadingText={ctaLoadingText}
+              >
+                {copy.standSecondaryCta}
+              </LoadingLink>
+            </div>
+          </div>
+        </section>
+
+        <SectionDivider label={copy.exploreSectionLabel} />
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {quickLinks.map((item) => (
+            <LoadingLink
+              key={item.href}
+              href={item.href}
+              className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              loadingText={ctaLoadingText}
+            >
+              <p className="text-lg font-extrabold tracking-tight text-slate-900">{item.title}</p>
+              <p className="mt-1 text-sm text-slate-600">{item.text}</p>
+            </LoadingLink>
+          ))}
+        </section>
+
+        <SectionDivider label={copy.faqSectionLabel} />
+        <section className="grid gap-3 md:grid-cols-2">
+          {faqItems.map((item) => (
+            <article key={item.question} className="rounded-2xl border border-slate-200 bg-white/90 p-5">
+              <h3 className="text-base font-bold text-slate-900">{item.question}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.answer}</p>
+            </article>
+          ))}
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <MarketingFooter locale={locale} />
     </div>
   );
 }

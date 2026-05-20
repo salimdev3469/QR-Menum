@@ -1,0 +1,186 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(userId) {
+      return /databases/$(database)/documents/users/$(userId);
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(userPath(request.auth.uid))
+        && get(userPath(request.auth.uid)).data.role == "admin";
+    }
+
+    function restaurantPath(restaurantId) {
+      return /databases/$(database)/documents/restaurants/$(restaurantId);
+    }
+
+    function restaurantExists(restaurantId) {
+      return exists(restaurantPath(restaurantId));
+    }
+
+    function isRestaurantOwner(restaurantId) {
+      return isSignedIn()
+        && restaurantExists(restaurantId)
+        && get(restaurantPath(restaurantId)).data.ownerUserId == request.auth.uid;
+    }
+
+    function isRestaurantActive(restaurantId) {
+      return restaurantExists(restaurantId)
+        && get(restaurantPath(restaurantId)).data.isActive == true;
+    }
+
+    function restaurantPlan(restaurantId) {
+      return restaurantExists(restaurantId)
+        && get(restaurantPath(restaurantId)).data.plan in ["starter", "growth", "premium"]
+        ? get(restaurantPath(restaurantId)).data.plan
+        : "starter";
+    }
+
+    function hasGrowthPlan(restaurantId) {
+      return restaurantPlan(restaurantId) in ["growth", "premium"];
+    }
+
+    function hasPremiumPlan(restaurantId) {
+      return restaurantPlan(restaurantId) == "premium";
+    }
+
+    function hasMenuItemVariationsInRequest() {
+      return ("variations" in request.resource.data)
+        && request.resource.data.variations is list
+        && request.resource.data.variations.size() > 0;
+    }
+
+    function restaurantTableCount(restaurantId) {
+      return restaurantExists(restaurantId)
+        && get(restaurantPath(restaurantId)).data.tableCount is int
+        ? get(restaurantPath(restaurantId)).data.tableCount
+        : 0;
+    }
+
+    function isValidTableNumber(restaurantId, tableNumber) {
+      return tableNumber is int
+        && tableNumber >= 1
+        && tableNumber <= restaurantTableCount(restaurantId);
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow list: if isAdmin();
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    match /restaurants/{restaurantId} {
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUserId == request.auth.uid
+        && request.resource.data.id == restaurantId;
+
+      allow get, list: if (
+        resource.data.isActive == true
+        || isAdmin()
+        || (isSignedIn() && resource.data.ownerUserId == request.auth.uid)
+      );
+      allow update: if isAdmin()
+        || (
+          isSignedIn()
+          && resource.data.ownerUserId == request.auth.uid
+          && request.resource.data.ownerUserId == resource.data.ownerUserId
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.plan == resource.data.plan
+          && (
+            hasGrowthPlan(restaurantId)
+            || request.resource.data.menuDesign == resource.data.menuDesign
+          )
+        );
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.ownerUserId == request.auth.uid);
+
+      match /categories/{categoryId} {
+        allow read: if isAdmin()
+          || isRestaurantOwner(restaurantId)
+          || (
+            isRestaurantActive(restaurantId)
+            && resource.data.isActive == true
+            && resource.data.isArchived == false
+          );
+
+        allow create, update, delete: if isAdmin() || isRestaurantOwner(restaurantId);
+      }
+
+      match /menuItems/{menuItemId} {
+        allow read: if isAdmin()
+          || isRestaurantOwner(restaurantId)
+          || (
+            isRestaurantActive(restaurantId)
+            && resource.data.isArchived == false
+          );
+        allow create: if isAdmin()
+          || (
+            isRestaurantOwner(restaurantId)
+            && (
+              hasGrowthPlan(restaurantId)
+              || !hasMenuItemVariationsInRequest()
+            )
+          );
+        allow update: if isAdmin()
+          || (
+            isRestaurantOwner(restaurantId)
+            && (
+              hasGrowthPlan(restaurantId)
+              || !hasMenuItemVariationsInRequest()
+              || request.resource.data.variations == resource.data.variations
+            )
+          );
+        allow delete: if isAdmin() || isRestaurantOwner(restaurantId);
+      }
+
+      match /gallery/{imageId} {
+        allow read: if isAdmin() || isRestaurantOwner(restaurantId) || isRestaurantActive(restaurantId);
+        allow create, update, delete: if isAdmin() || isRestaurantOwner(restaurantId);
+      }
+
+      match /promotions/{promotionId} {
+        allow read: if isAdmin()
+          || isRestaurantOwner(restaurantId)
+          || (
+            isRestaurantActive(restaurantId)
+            && resource.data.isActive == true
+            && resource.data.isArchived == false
+          );
+        allow create, update, delete: if isAdmin()
+          || (isRestaurantOwner(restaurantId) && hasPremiumPlan(restaurantId));
+      }
+
+      match /waiterCalls/{callId} {
+        allow read: if isAdmin() || isRestaurantOwner(restaurantId);
+
+        allow create: if isRestaurantActive(restaurantId)
+          && hasGrowthPlan(restaurantId)
+          && request.resource.data.id == callId
+          && request.resource.data.isActive == true
+          && request.resource.data.resolvedAt == null
+          && isValidTableNumber(restaurantId, request.resource.data.tableNumber);
+
+        allow update, delete: if isAdmin() || isRestaurantOwner(restaurantId);
+      }
+    }
+
+    match /systemOrders/{orderId} {
+      allow create: if request.resource.data.planName in ["Starter", "Growth", "Premium"]
+        && request.resource.data.billingCycle in ["monthly", "annual"];
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /standOrders/{orderId} {
+      allow create: if request.resource.data.tableCount is int
+        && request.resource.data.tableCount > 0
+        && request.resource.data.designType in ["preset", "upload"];
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

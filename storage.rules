@@ -1,0 +1,65 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function restaurantPath(restaurantId) {
+      return /databases/(default)/documents/restaurants/$(restaurantId);
+    }
+
+    function userProfilePath() {
+      return /databases/(default)/documents/users/$(request.auth.uid);
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.exists(userProfilePath())
+        && firestore.get(userProfilePath()).data.role == "admin";
+    }
+
+    function restaurantExists(restaurantId) {
+      return firestore.exists(restaurantPath(restaurantId));
+    }
+
+    function userProfileExists() {
+      return isSignedIn() && firestore.exists(userProfilePath());
+    }
+
+    function isRestaurantLinkedToUserProfile(restaurantId) {
+      return userProfileExists()
+        && firestore.get(userProfilePath()).data.restaurantId == restaurantId;
+    }
+
+    function isPathOwner(restaurantId) {
+      return isSignedIn() && request.auth.uid == restaurantId;
+    }
+
+    function isRestaurantOwner(restaurantId) {
+      return isSignedIn()
+        && restaurantExists(restaurantId)
+        && (
+          firestore.get(restaurantPath(restaurantId)).data.ownerUserId == request.auth.uid
+          || isRestaurantLinkedToUserProfile(restaurantId)
+        );
+    }
+
+    function isRestaurantActive(restaurantId) {
+      return restaurantExists(restaurantId)
+        && firestore.get(restaurantPath(restaurantId)).data.isActive == true;
+    }
+
+    match /restaurants/{restaurantId}/{allPaths=**} {
+      allow read: if isAdmin() || isPathOwner(restaurantId) || isRestaurantOwner(restaurantId) || isRestaurantActive(restaurantId);
+      allow write: if isAdmin() || isPathOwner(restaurantId) || isRestaurantOwner(restaurantId);
+    }
+
+    match /stand-orders/{orderId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource != null
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType.matches("image/.*");
+    }
+  }
+}
