@@ -28,7 +28,7 @@ type AttrTarget = {
 
 type Target = TextTarget | AttrTarget;
 
-const CACHE_KEY = "qr-ui-translation-cache-v1";
+const CACHE_KEY = "qr-ui-translation-cache-v2";
 const ATTRIBUTES: TranslatableAttr[] = ["placeholder", "title", "aria-label"];
 const BATCH_SIZE = 30;
 

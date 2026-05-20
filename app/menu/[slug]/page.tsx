@@ -18,7 +18,7 @@ import { listPublicMenuItemsByRestaurant } from "@/services/menu-service";
 import { listPublicPromotionsByRestaurant } from "@/services/promotion-service";
 import { getRestaurantBySlug, listGallery } from "@/services/restaurant-service";
 import { createWaiterCall } from "@/services/waiter-call-service";
-import { Category, MenuItem, Promotion, Restaurant } from "@/types";
+import { Category, MenuItem, Promotion, Restaurant, SupportedLocale } from "@/types";
 
 interface MenuPageProps {
   params: Promise<{ slug: string }>;
@@ -54,6 +54,17 @@ function normalizeExternalUrl(url: string): string {
   }
 
   return `https://${trimmed}`;
+}
+
+function waiterCallSuccessMessage(locale: SupportedLocale, tableNumber: number): string {
+  const templates: Record<SupportedLocale, (table: number) => string> = {
+    tr: (table) => `Masa ${table} için garson çağrısı gönderildi.`,
+    en: (table) => `Waiter call sent for table ${table}.`,
+    ru: (table) => `Вызов официанта отправлен для стола ${table}.`,
+    ar: (table) => `تم إرسال طلب النادل للطاولة ${table}.`,
+  };
+
+  return templates[locale](tableNumber);
 }
 
 export default function PublicMenuPage({ params }: MenuPageProps) {
@@ -179,7 +190,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     if (uncategorizedItems.length > 0) {
       sections.push({
         id: "__uncategorized__",
-        title: locale === "en" ? "Other" : "Diğer",
+        title: t("otherCategory", locale),
         items: uncategorizedItems,
       });
     }
@@ -214,7 +225,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     if (selectedTableNumber < 1 || selectedTableNumber > restaurant.tableCount) {
       setWaiterCallFeedback({
         type: "error",
-        message: "Lütfen geçerli bir masa seçin.",
+        message: t("invalidTableSelection", locale),
       });
       return;
     }
@@ -226,12 +237,12 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
       await createWaiterCall(restaurant.id, selectedTableNumber);
       setWaiterCallFeedback({
         type: "success",
-        message: `Masa ${selectedTableNumber} için garson çağrısı gönderildi.`,
+        message: waiterCallSuccessMessage(locale, selectedTableNumber),
       });
     } catch (error) {
       setWaiterCallFeedback({
         type: "error",
-        message: error instanceof Error ? error.message : "Garson çağrısı gönderilemedi.",
+        message: error instanceof Error ? error.message : t("waiterCallFailed", locale),
       });
     } finally {
       setWaiterCalling(false);
@@ -242,7 +253,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
         <div className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white shadow-lg backdrop-blur">
-          <Spinner /> Menü yükleniyor...
+          <Spinner /> {t("loadingMenu", locale)}
         </div>
       </div>
     );
@@ -382,14 +393,14 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
             {availableVariations.length ? (
               <div className="mt-2 rounded-lg border p-2" style={{ borderColor: isDarkTheme ? "#334155" : "#e2e8f0" }}>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: subtitleColor }}>
-                  Varyasyonlar
+                  {t("variations", locale)}
                 </p>
                 <div className="mt-1 space-y-1">
                   {availableVariations.map((variation) => (
                     <p key={variation.id} className="flex items-center justify-between text-xs" style={{ color: textColor }}>
                       <span>
                         {variation.name}
-                        {variation.isDefault ? " • Varsayılan" : ""}
+                        {variation.isDefault ? ` • ${t("defaultOption", locale)}` : ""}
                       </span>
                       <span>{formatPrice(variation.price)}</span>
                     </p>
@@ -400,7 +411,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
 
             {item.allergens?.length ? (
               <p className="mt-2 text-xs" style={{ color: subtitleColor }}>
-                Alerjen: {item.allergens.join(", ")}
+                {t("allergen", locale)}: {item.allergens.join(", ")}
               </p>
             ) : null}
           </div>
@@ -469,13 +480,13 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="min-w-[11rem] flex-1">
                     <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: subtitleColor }}>
-                      Servis
+                      {t("serviceSection", locale)}
                     </p>
                     <h3 className="mt-1 text-lg font-extrabold" style={{ color: textColor }}>
-                      Garson Çağır
+                      {t("callWaiter", locale)}
                     </h3>
                     <p className="mt-1 text-sm" style={{ color: subtitleColor }}>
-                      Masanız için anında çağrı gönderin.
+                      {t("callWaiterDescription", locale)}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -489,7 +500,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
                       {Array.from({ length: Math.max(restaurant.tableCount, 0) }, (_, index) => index + 1).map(
                         (tableNumber) => (
                           <option key={tableNumber} value={tableNumber}>
-                            Masa {tableNumber}
+                            {t("table", locale)} {tableNumber}
                           </option>
                         ),
                       )}
@@ -503,10 +514,10 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
                     >
                       {waiterCalling ? (
                         <span className="inline-flex items-center gap-2">
-                          <Spinner /> Gönderiliyor
+                          <Spinner /> {t("sending", locale)}
                         </span>
                       ) : (
-                        "Garson Çağır"
+                        t("callWaiter", locale)
                       )}
                     </button>
                   </div>
@@ -514,7 +525,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
 
                 {restaurant.tableCount < 1 ? (
                   <div className="mt-3">
-                    <Alert variant="info">Bu işletme için masa sayısı tanımlanmadı.</Alert>
+                    <Alert variant="info">{t("tableCountNotDefined", locale)}</Alert>
                   </div>
                 ) : null}
 
@@ -582,7 +593,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
           <section className="mb-5 rounded-2xl border p-4 shadow-sm" style={sectionCardStyle}>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h3 className="text-base font-bold" style={{ color: textColor }}>
-                Galeri
+                {t("gallery", locale)}
               </h3>
               <Badge className="px-3 py-1 text-white" style={{ backgroundColor: design.accentColor }}>
                 {gallery.length}
@@ -599,7 +610,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
                 >
                   <img
                     src={image.imageUrl}
-                    alt={`Galeri ${image.sortOrder > 0 ? image.sortOrder : image.id}`}
+                    alt={`${t("gallery", locale)} ${image.sortOrder > 0 ? image.sortOrder : image.id}`}
                     className="h-48 w-full object-cover transition duration-300 group-hover:scale-[1.02]"
                   />
                 </a>
@@ -620,7 +631,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
                 }}
               >
                 <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: design.accentColor }}>
-                  Kampanya
+                  {t("campaign", locale)}
                 </p>
                 <h3 className="mt-1 text-lg font-bold" style={{ color: textColor }}>
                   {getLocalizedText(promotion.titleI18n, locale, promotion.title)}
@@ -684,7 +695,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
         {socialEntries.length > 0 ? (
           <section className="mt-8 rounded-2xl border p-4" style={sectionCardStyle}>
             <h3 className="text-base font-bold" style={{ color: textColor }}>
-              Sosyal Medyada Bizi Takip Edin
+              {t("followUsOnSocialMedia", locale)}
             </h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {socialEntries.map((entry) => (

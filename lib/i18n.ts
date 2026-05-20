@@ -116,6 +116,102 @@ const dictionary = {
     ru: "Записи не найдены",
     ar: "لا توجد بيانات",
   },
+  loadingMenu: {
+    tr: "Menü yükleniyor...",
+    en: "Loading menu...",
+    ru: "Загрузка меню...",
+    ar: "جارٍ تحميل القائمة...",
+  },
+  otherCategory: {
+    tr: "Diğer",
+    en: "Other",
+    ru: "Другое",
+    ar: "أخرى",
+  },
+  serviceSection: {
+    tr: "Servis",
+    en: "Service",
+    ru: "Сервис",
+    ar: "الخدمة",
+  },
+  callWaiter: {
+    tr: "Garson Çağır",
+    en: "Call Waiter",
+    ru: "Вызвать официанта",
+    ar: "استدعِ النادل",
+  },
+  callWaiterDescription: {
+    tr: "Masanız için anında çağrı gönderin.",
+    en: "Send an instant call for your table.",
+    ru: "Отправьте мгновенный вызов для вашего стола.",
+    ar: "أرسل طلبًا فوريًا لطاولتك.",
+  },
+  table: {
+    tr: "Masa",
+    en: "Table",
+    ru: "Стол",
+    ar: "طاولة",
+  },
+  sending: {
+    tr: "Gönderiliyor",
+    en: "Sending",
+    ru: "Отправка",
+    ar: "جارٍ الإرسال",
+  },
+  tableCountNotDefined: {
+    tr: "Bu işletme için masa sayısı tanımlanmadı.",
+    en: "Table count is not defined for this venue.",
+    ru: "Для этого заведения не задано количество столов.",
+    ar: "لم يتم تحديد عدد الطاولات لهذا المكان.",
+  },
+  variations: {
+    tr: "Varyasyonlar",
+    en: "Variations",
+    ru: "Вариации",
+    ar: "الخيارات",
+  },
+  defaultOption: {
+    tr: "Varsayılan",
+    en: "Default",
+    ru: "По умолчанию",
+    ar: "افتراضي",
+  },
+  allergen: {
+    tr: "Alerjen",
+    en: "Allergen",
+    ru: "Аллерген",
+    ar: "مسبب حساسية",
+  },
+  gallery: {
+    tr: "Galeri",
+    en: "Gallery",
+    ru: "Галерея",
+    ar: "المعرض",
+  },
+  campaign: {
+    tr: "Kampanya",
+    en: "Campaign",
+    ru: "Кампания",
+    ar: "حملة",
+  },
+  followUsOnSocialMedia: {
+    tr: "Sosyal Medyada Bizi Takip Edin",
+    en: "Follow Us on Social Media",
+    ru: "Подписывайтесь на нас в соцсетях",
+    ar: "تابعنا على وسائل التواصل الاجتماعي",
+  },
+  invalidTableSelection: {
+    tr: "Lütfen geçerli bir masa seçin.",
+    en: "Please select a valid table.",
+    ru: "Пожалуйста, выберите корректный стол.",
+    ar: "يرجى اختيار طاولة صالحة.",
+  },
+  waiterCallFailed: {
+    tr: "Garson çağrısı gönderilemedi.",
+    en: "Waiter call could not be sent.",
+    ru: "Не удалось отправить вызов официанта.",
+    ar: "تعذر إرسال طلب النادل.",
+  },
 } as const;
 
 type DictionaryKey = keyof typeof dictionary;
