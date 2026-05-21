@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 
 import { Providers } from "@/app/providers";
+import { resolveRequestLocale } from "@/lib/request-locale";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -17,15 +18,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialLocale = await resolveRequestLocale();
+
   return (
-    <html lang="tr">
+    <html lang={initialLocale}>
       <body className={`${manrope.variable} bg-slate-100 text-slate-900 antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers initialLocale={initialLocale}>{children}</Providers>
       </body>
     </html>
   );

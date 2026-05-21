@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 import { LoadingLink } from "@/components/ui/loading-link";
 import { BrandLogoLink } from "@/components/ui/brand-logo-link";
+import { useLocale } from "@/hooks/use-locale";
 import { CONTACT_CHANNELS, MARKETING_NAV_LINKS, MarketingLink } from "@/lib/marketing-content";
 
 type MarketingLocale = "tr" | "en";
@@ -88,12 +89,14 @@ const FOOTER_COPY = {
   },
 } as const;
 
-export function MarketingFooter({ locale = "tr" }: MarketingFooterProps) {
+export function MarketingFooter({ locale }: MarketingFooterProps) {
+  const { locale: appLocale } = useLocale();
+  const resolvedLocale: MarketingLocale = locale ?? (appLocale === "tr" ? "tr" : "en");
   const pathname = usePathname();
-  const navLinks = NAV_LINKS[locale];
-  const contactChannels = CONTACT_CHANNELS_BY_LOCALE[locale];
-  const legalLinks = LEGAL_LINKS[locale];
-  const copy = FOOTER_COPY[locale];
+  const navLinks = NAV_LINKS[resolvedLocale];
+  const contactChannels = CONTACT_CHANNELS_BY_LOCALE[resolvedLocale];
+  const legalLinks = LEGAL_LINKS[resolvedLocale];
+  const copy = FOOTER_COPY[resolvedLocale];
   const allSitemapLinks = [...navLinks, { href: "/faq", label: copy.faqLabel }];
 
   const isActiveLink = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);

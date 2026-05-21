@@ -23,6 +23,21 @@ const DEMO_PUBLIC_MENU_SLUGS = new Set([
   "sample-cafe",
 ]);
 
+const DEMO_MEDIA_URLS = {
+  cafe:
+    "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/12/ae/e5/56/20180419-103421-largejpg.jpg?w=900&h=500&s=1",
+  cafe2:
+    "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1a/14/b5/2f/the-maker-cafe.jpg?w=900&h=500&s=1",
+  latte:
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Caffe_Latte_cup.jpg/1280px-Caffe_Latte_cup.jpg",
+  grilledChickenBowl:
+    "https://d17wu0fn6x6rgz.cloudfront.net/img/w/tarif/mgt/tavuk-bowl-medya.webp",
+  veganWrap: "https://www.plantperks.com/wp-content/uploads/2020/02/IMG_0198-Edit.jpg",
+  soup: "https://kuletower.com/wp-content/uploads/2024/01/blog-215.jpg",
+  sanSebastian:
+    "https://www.bizimmutfak.com.tr/wp-content/uploads/2023/09/cikolata-sosu-profiterol-hamur.jpg",
+} as const;
+
 function i18n(values: { tr: string; en: string; ru?: string; ar?: string }) {
   return normalizeLocalizedMap({
     tr: values.tr,
@@ -94,7 +109,7 @@ const DEMO_ITEMS: MenuItem[] = [
     isDiscounted: true,
     isAvailable: true,
     sortOrder: 1,
-    imageUrls: ["/customer-qr-showcase.png"],
+    imageUrls: [DEMO_MEDIA_URLS.latte],
     createdAt: null,
     updatedAt: null,
     isArchived: false,
@@ -142,7 +157,7 @@ const DEMO_ITEMS: MenuItem[] = [
     isDiscounted: false,
     isAvailable: true,
     sortOrder: 2,
-    imageUrls: ["/qr_stand.png"],
+    imageUrls: [DEMO_MEDIA_URLS.grilledChickenBowl],
     createdAt: null,
     updatedAt: null,
     isArchived: false,
@@ -173,7 +188,7 @@ const DEMO_ITEMS: MenuItem[] = [
     isDiscounted: false,
     isAvailable: true,
     sortOrder: 3,
-    imageUrls: ["/customer-qr-showcase.png"],
+    imageUrls: [DEMO_MEDIA_URLS.veganWrap],
     createdAt: null,
     updatedAt: null,
     isArchived: false,
@@ -204,7 +219,7 @@ const DEMO_ITEMS: MenuItem[] = [
     isDiscounted: true,
     isAvailable: true,
     sortOrder: 4,
-    imageUrls: ["/qr_empty.png"],
+    imageUrls: [DEMO_MEDIA_URLS.sanSebastian],
     createdAt: null,
     updatedAt: null,
     isArchived: false,
@@ -235,7 +250,7 @@ const DEMO_ITEMS: MenuItem[] = [
     isDiscounted: false,
     isAvailable: false,
     sortOrder: 5,
-    imageUrls: [],
+    imageUrls: [DEMO_MEDIA_URLS.soup],
     createdAt: null,
     updatedAt: null,
     isArchived: false,
@@ -289,17 +304,17 @@ const DEMO_PROMOTIONS: Promotion[] = [
 const DEMO_GALLERY: DemoGalleryItem[] = [
   {
     id: "demo-gallery-1",
-    imageUrl: "/customer-qr-showcase.png",
+    imageUrl: DEMO_MEDIA_URLS.cafe,
     sortOrder: 1,
   },
   {
     id: "demo-gallery-2",
-    imageUrl: "/qr_stand.png",
+    imageUrl: DEMO_MEDIA_URLS.cafe2,
     sortOrder: 2,
   },
   {
     id: "demo-gallery-3",
-    imageUrl: "/qr_empty.png",
+    imageUrl: DEMO_MEDIA_URLS.latte,
     sortOrder: 3,
   },
 ];
@@ -320,7 +335,7 @@ export function getDemoPublicMenuData(slug: string): DemoPublicMenuData | null {
       address: "Atatürk Cad. No:45, İstanbul",
       slug: normalizedSlug,
       logoUrl: "/icon.png",
-      backgroundImageUrl: "/customer-qr-showcase.png",
+      backgroundImageUrl: DEMO_MEDIA_URLS.cafe,
       isActive: true,
       createdAt: null,
       updatedAt: null,

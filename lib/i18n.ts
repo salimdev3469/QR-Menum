@@ -32,6 +32,36 @@ const dictionary = {
     ru: "Панель",
     ar: "لوحة التحكم",
   },
+  adminPanel: {
+    tr: "Admin Paneli",
+    en: "Admin Panel",
+    ru: "Админ-панель",
+    ar: "لوحة الإدارة",
+  },
+  adminOverview: {
+    tr: "Genel Bakış",
+    en: "Overview",
+    ru: "Обзор",
+    ar: "نظرة عامة",
+  },
+  customers: {
+    tr: "Müşteriler",
+    en: "Customers",
+    ru: "Клиенты",
+    ar: "العملاء",
+  },
+  systemOrders: {
+    tr: "Sistem Satın Alımları",
+    en: "System Purchases",
+    ru: "Покупки системы",
+    ar: "مشتريات النظام",
+  },
+  standOrders: {
+    tr: "Stant Siparişleri",
+    en: "Stand Orders",
+    ru: "Заказы стендов",
+    ar: "طلبات الحوامل",
+  },
   restaurant: {
     tr: "İşletme",
     en: "Restaurant",
@@ -67,6 +97,18 @@ const dictionary = {
     en: "Settings",
     ru: "Настройки",
     ar: "الإعدادات",
+  },
+  checkingSession: {
+    tr: "Oturum doğrulanıyor...",
+    en: "Checking session...",
+    ru: "Проверка сессии...",
+    ar: "جارٍ التحقق من الجلسة...",
+  },
+  loadingAdminPanel: {
+    tr: "Admin paneli yükleniyor...",
+    en: "Loading admin panel...",
+    ru: "Загрузка админ-панели...",
+    ar: "جارٍ تحميل لوحة الإدارة...",
   },
   waiterCalls: {
     tr: "Garson Çağrıları",

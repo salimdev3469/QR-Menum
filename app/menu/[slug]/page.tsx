@@ -434,7 +434,11 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ background: contentBackground }}>
+    <div
+      className="min-h-screen pb-10"
+      style={{ background: contentBackground }}
+      data-no-auto-translate
+    >
       <div className="relative overflow-hidden">
         <header className="relative isolate min-h-[22rem] w-full overflow-hidden bg-slate-950">
           {bannerImageUrl ? (

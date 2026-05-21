@@ -6,6 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { useLocale } from "@/hooks/use-locale";
 import { formatDate } from "@/lib/format";
 import { getStarterTrialStatus, STARTER_TRIAL_DAYS } from "@/lib/trial";
 import {
@@ -15,7 +16,58 @@ import {
 } from "@/services/admin-service";
 import { RestaurantPlan } from "@/types";
 
+const CUSTOMER_PAGE_COPY = {
+  tr: {
+    loadError: "Müşteri verileri yüklenemedi. Firestore admin yetkisini kontrol edin.",
+    success: "Müşteri paketi güncellendi.",
+    updateError: "Paket güncellenemedi.",
+    title: "Müşteriler",
+    subtitle: "Kayıt olmuş tüm restoran hesapları.",
+    loading: "Müşteriler yükleniyor...",
+    noRecords: "Müşteri kaydı bulunamadı.",
+    customer: "Müşteri",
+    email: "E-posta",
+    phone: "Telefon",
+    restaurant: "Restoran",
+    plan: "Paket",
+    trial: "Deneme",
+    restaurantId: "Restaurant ID",
+    createdAt: "Kayıt",
+    table: "masa",
+    active: "Aktif",
+    inactive: "Pasif",
+    trialUnknown: "Hesaplanamadı",
+    trialExpired: "Süre bitti (0 gün)",
+    dayLabel: "gün",
+  },
+  en: {
+    loadError: "Customer data could not be loaded. Check Firestore admin permissions.",
+    success: "Customer plan updated.",
+    updateError: "Plan could not be updated.",
+    title: "Customers",
+    subtitle: "All registered restaurant accounts.",
+    loading: "Loading customers...",
+    noRecords: "No customer records found.",
+    customer: "Customer",
+    email: "Email",
+    phone: "Phone",
+    restaurant: "Restaurant",
+    plan: "Plan",
+    trial: "Trial",
+    restaurantId: "Restaurant ID",
+    createdAt: "Created",
+    table: "tables",
+    active: "Active",
+    inactive: "Inactive",
+    trialUnknown: "Unavailable",
+    trialExpired: "Expired (0 days)",
+    dayLabel: "days",
+  },
+} as const;
+
 export default function AdminCustomersPage() {
+  const { locale } = useLocale();
+  const copy = locale === "tr" ? CUSTOMER_PAGE_COPY.tr : CUSTOMER_PAGE_COPY.en;
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<AdminCustomerRecord[]>([]);
   const [updatingRestaurantId, setUpdatingRestaurantId] = useState<string | null>(null);
@@ -32,13 +84,13 @@ export default function AdminCustomersPage() {
         setCustomers(nextCustomers);
       } catch (error) {
         console.error("[AdminCustomers] load failed:", error);
-        setLoadError("Müşteri verileri yüklenemedi. Firestore admin yetkisini kontrol edin.");
+        setLoadError(copy.loadError);
         setCustomers([]);
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [copy.loadError]);
 
   const handlePlanChange = async (restaurantId: string, plan: RestaurantPlan) => {
     setFeedback(null);
@@ -53,11 +105,11 @@ export default function AdminCustomersPage() {
             : item,
         ),
       );
-      setFeedback({ type: "success", message: "Müşteri paketi güncellendi." });
+      setFeedback({ type: "success", message: copy.success });
     } catch (error) {
       setFeedback({
         type: "error",
-        message: error instanceof Error ? error.message : "Paket güncellenemedi.",
+        message: error instanceof Error ? error.message : copy.updateError,
       });
     } finally {
       setUpdatingRestaurantId(null);
@@ -66,8 +118,8 @@ export default function AdminCustomersPage() {
 
   return (
     <Card>
-      <h1 className="text-xl font-bold text-slate-900">Müşteriler</h1>
-      <p className="mt-1 text-sm text-slate-600">Kayıt olmuş tüm restoran hesapları.</p>
+      <h1 className="text-xl font-bold text-slate-900">{copy.title}</h1>
+      <p className="mt-1 text-sm text-slate-600">{copy.subtitle}</p>
 
       {feedback ? (
         <div className="mt-4">
@@ -77,27 +129,27 @@ export default function AdminCustomersPage() {
 
       {loading ? (
         <div className="mt-4 inline-flex items-center gap-2 text-sm text-slate-600">
-          <Spinner /> Müşteriler yükleniyor...
+          <Spinner /> {copy.loading}
         </div>
       ) : loadError ? (
         <div className="mt-4">
           <Alert variant="error">{loadError}</Alert>
         </div>
       ) : customers.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">Müşteri kaydı bulunamadı.</p>
+        <p className="mt-4 text-sm text-slate-500">{copy.noRecords}</p>
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead className="text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-3 py-2">Müşteri</th>
-                <th className="px-3 py-2">E-posta</th>
-                <th className="px-3 py-2">Telefon</th>
-                <th className="px-3 py-2">Restoran</th>
-                <th className="px-3 py-2">Paket</th>
-                <th className="px-3 py-2">Deneme</th>
-                <th className="px-3 py-2">Restaurant ID</th>
-                <th className="px-3 py-2">Kayıt</th>
+                <th className="px-3 py-2">{copy.customer}</th>
+                <th className="px-3 py-2">{copy.email}</th>
+                <th className="px-3 py-2">{copy.phone}</th>
+                <th className="px-3 py-2">{copy.restaurant}</th>
+                <th className="px-3 py-2">{copy.plan}</th>
+                <th className="px-3 py-2">{copy.trial}</th>
+                <th className="px-3 py-2">{copy.restaurantId}</th>
+                <th className="px-3 py-2">{copy.createdAt}</th>
               </tr>
             </thead>
             <tbody>
@@ -115,7 +167,7 @@ export default function AdminCustomersPage() {
                     <td className="px-3 py-2 text-slate-700">
                       {customer.restaurantName || "-"}
                       <p className="text-xs text-slate-500">
-                        {customer.tableCount} masa / {customer.restaurantIsActive ? "Aktif" : "Pasif"}
+                        {customer.tableCount} {copy.table} / {customer.restaurantIsActive ? copy.active : copy.inactive}
                       </p>
                     </td>
                     <td className="px-3 py-2">
@@ -138,11 +190,11 @@ export default function AdminCustomersPage() {
                       {!trialStatus.isApplicable ? (
                         "-"
                       ) : trialStatus.remainingDays === null ? (
-                        "Hesaplanamadı"
+                        copy.trialUnknown
                       ) : trialStatus.isExpired ? (
-                        "Süre bitti (0 gün)"
+                        copy.trialExpired
                       ) : (
-                        `${trialStatus.remainingDays}/${STARTER_TRIAL_DAYS} gün`
+                        `${trialStatus.remainingDays}/${STARTER_TRIAL_DAYS} ${copy.dayLabel}`
                       )}
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-500">{customer.profile.restaurantId}</td>

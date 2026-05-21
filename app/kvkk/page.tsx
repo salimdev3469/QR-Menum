@@ -2,77 +2,156 @@ import type { Metadata } from "next";
 
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { SectionDivider } from "@/components/marketing/section-divider";
+import { resolveRequestLocale } from "@/lib/request-locale";
 
 export const metadata: Metadata = {
   title: "KVKK Aydınlatma Metni | QR Menüm",
   description: "QR Menüm kişisel veri işleme süreçlerine ilişkin KVKK aydınlatma metni.",
 };
 
-const KVKK_SECTIONS = [
-  {
-    title: "1) Veri Sorumlusu",
-    items: [
-      "Bu aydınlatma metni, AKA YAZILIM tarafından veri sorumlusu sıfatıyla hazırlanmıştır.",
-      "QR Menüm platformunu kullanan gerçek kişi kullanıcıların kişisel verileri, 6698 sayılı KVKK kapsamında işlenir.",
+const KVKK_CONTENT = {
+  tr: {
+    legalLabel: "Yasal",
+    title: "KVKK Aydınlatma Metni",
+    updatedAt: "Son güncelleme: 21 Mayıs 2026",
+    sectionLabel: "KVKK",
+    sections: [
+      {
+        title: "1) Veri Sorumlusu",
+        items: [
+          "Bu aydınlatma metni, AKA YAZILIM tarafından veri sorumlusu sıfatıyla hazırlanmıştır.",
+          "QR Menüm platformunu kullanan gerçek kişi kullanıcıların kişisel verileri, 6698 sayılı KVKK kapsamında işlenir.",
+        ],
+      },
+      {
+        title: "2) İşlenen Kişisel Veri Kategorileri",
+        items: [
+          "Kimlik ve iletişim verileri: ad-soyad, e-posta, telefon, işletme iletişim bilgileri.",
+          "İşlem güvenliği verileri: oturum kayıtları, giriş-çıkış zamanları, IP, cihaz ve hata logları.",
+          "Hizmet kullanım verileri: menü içerikleri, QR bağlantıları, yayın tercihleri ve panel ayarları.",
+        ],
+      },
+      {
+        title: "3) Kişisel Verilerin İşlenme Amaçları",
+        items: [
+          "Platform üyeliğini oluşturmak, hesabı doğrulamak ve hizmeti güvenli şekilde sunmak.",
+          "Teknik destek, bildirim, operasyon ve müşteri ilişkileri süreçlerini yürütmek.",
+          "Yasal yükümlülükleri yerine getirmek, suistimal ve güvenlik risklerini önlemek.",
+          "Açık rıza verilmesi halinde performans ve ürün geliştirme analizleri yapmak.",
+        ],
+      },
+      {
+        title: "4) Veri Aktarımı",
+        items: [
+          "Veriler, hizmetin çalışması için kullanılan barındırma, depolama, kimlik doğrulama ve e-posta servis sağlayıcılarına aktarılabilir.",
+          "Yasal zorunluluk halinde yetkili kamu kurum ve kuruluşlarına bilgi paylaşımı yapılabilir.",
+          "Aktarımlar, KVKK'nın 8 ve 9. maddeleri kapsamında uygun teknik ve idari tedbirlerle gerçekleştirilir.",
+        ],
+      },
+      {
+        title: "5) Toplama Yöntemi ve Hukuki Sebep",
+        items: [
+          "Veriler; kayıt formları, panel işlemleri, çerez tercihleri, destek talepleri ve otomatik log mekanizmaları üzerinden toplanır.",
+          "İşleme faaliyetleri; sözleşmenin kurulması/ifası, hukuki yükümlülüklerin yerine getirilmesi, meşru menfaat ve açık rıza hukuki sebeplerine dayanır.",
+        ],
+      },
+      {
+        title: "6) İlgili Kişi Hakları (KVKK Madde 11)",
+        items: [
+          "Kişisel verinizin işlenip işlenmediğini öğrenme ve bilgi talep etme.",
+          "Eksik veya yanlış işlenmiş verilerin düzeltilmesini isteme.",
+          "Şartları oluştuğunda verilerin silinmesini veya yok edilmesini talep etme.",
+          "İşlemeye itiraz etme ve otomatik analizlere karşı hak kullanma.",
+          "Kanuna aykırı işlem nedeniyle zarara uğranması halinde tazminat talep etme.",
+        ],
+      },
+    ],
+    finalTitle: "7) Başvuru ve İletişim",
+    finalParagraphs: [
+      "KVKK kapsamındaki hak taleplerinizi bize aşağıdaki kanallardan iletebilirsiniz:\nE-posta: salimaka2014@gmail.com\nTelefon: 0553 351 7769",
+      "Bu metin genel bilgilendirme amacı taşır ve hizmet değişiklikleri ile mevzuat güncellemelerine göre yenilenebilir.",
     ],
   },
-  {
-    title: "2) İşlenen Kişisel Veri Kategorileri",
-    items: [
-      "Kimlik ve iletişim verileri: ad-soyad, e-posta, telefon, işletme iletişim bilgileri.",
-      "İşlem güvenliği verileri: oturum kayıtları, giriş-çıkış zamanları, IP, cihaz ve hata logları.",
-      "Hizmet kullanım verileri: menü içerikleri, QR bağlantıları, yayın tercihleri ve panel ayarları.",
+  en: {
+    legalLabel: "Legal",
+    title: "KVKK Disclosure Text",
+    updatedAt: "Last updated: May 21, 2026",
+    sectionLabel: "KVKK",
+    sections: [
+      {
+        title: "1) Data Controller",
+        items: [
+          "This disclosure text has been prepared by AKA YAZILIM in its capacity as data controller.",
+          "Personal data of natural person users of the QR Menüm platform is processed under Turkish Law No. 6698 (KVKK).",
+        ],
+      },
+      {
+        title: "2) Categories of Personal Data Processed",
+        items: [
+          "Identity and contact data: full name, email, phone, and business contact details.",
+          "Transaction security data: session records, login/logout timestamps, IP, device, and error logs.",
+          "Service usage data: menu content, QR links, publishing preferences, and panel settings.",
+        ],
+      },
+      {
+        title: "3) Purposes of Processing Personal Data",
+        items: [
+          "To create platform membership, verify the account, and provide the service securely.",
+          "To run technical support, notifications, operations, and customer relationship processes.",
+          "To meet legal obligations and prevent abuse and security risks.",
+          "With explicit consent, to conduct performance and product development analysis.",
+        ],
+      },
+      {
+        title: "4) Data Transfer",
+        items: [
+          "Data may be transferred to hosting, storage, authentication, and email service providers used for service operation.",
+          "Information may be shared with authorized public institutions and organizations when legally required.",
+          "Transfers are carried out with appropriate technical and administrative safeguards under Articles 8 and 9 of KVKK.",
+        ],
+      },
+      {
+        title: "5) Collection Method and Legal Basis",
+        items: [
+          "Data is collected through registration forms, panel actions, cookie preferences, support requests, and automated logging mechanisms.",
+          "Processing activities rely on legal bases including contract establishment/performance, legal obligations, legitimate interest, and explicit consent.",
+        ],
+      },
+      {
+        title: "6) Data Subject Rights (KVKK Article 11)",
+        items: [
+          "To learn whether your personal data is processed and request related information.",
+          "To request correction of incomplete or inaccurate data.",
+          "To request deletion or destruction of data when legal conditions are met.",
+          "To object to processing and exercise rights against automated analysis.",
+          "To request compensation in case of damage due to unlawful processing.",
+        ],
+      },
+    ],
+    finalTitle: "7) Application and Contact",
+    finalParagraphs: [
+      "You can submit your KVKK rights requests through:\nEmail: salimaka2014@gmail.com\nPhone: 0553 351 7769",
+      "This text is for general information purposes and may be updated according to service changes and legal updates.",
     ],
   },
-  {
-    title: "3) Kişisel Verilerin İşlenme Amaçları",
-    items: [
-      "Platform üyeliğini oluşturmak, hesabı doğrulamak ve hizmeti güvenli şekilde sunmak.",
-      "Teknik destek, bildirim, operasyon ve müşteri ilişkileri süreçlerini yürütmek.",
-      "Yasal yükümlülükleri yerine getirmek, suistimal ve güvenlik risklerini önlemek.",
-      "Açık rıza verilmesi halinde performans ve ürün geliştirme analizleri yapmak.",
-    ],
-  },
-  {
-    title: "4) Veri Aktarımı",
-    items: [
-      "Veriler, hizmetin çalışması için kullanılan barındırma, depolama, kimlik doğrulama ve e-posta servis sağlayıcılarına aktarılabilir.",
-      "Yasal zorunluluk halinde yetkili kamu kurum ve kuruluşlarına bilgi paylaşımı yapılabilir.",
-      "Aktarımlar, KVKK'nın 8 ve 9. maddeleri kapsamında uygun teknik ve idari tedbirlerle gerçekleştirilir.",
-    ],
-  },
-  {
-    title: "5) Toplama Yöntemi ve Hukuki Sebep",
-    items: [
-      "Veriler; kayıt formları, panel işlemleri, çerez tercihleri, destek talepleri ve otomatik log mekanizmaları üzerinden toplanır.",
-      "İşleme faaliyetleri; sözleşmenin kurulması/ifası, hukuki yükümlülüklerin yerine getirilmesi, meşru menfaat ve açık rıza hukuki sebeplerine dayanır.",
-    ],
-  },
-  {
-    title: "6) İlgili Kişi Hakları (KVKK Madde 11)",
-    items: [
-      "Kişisel verinizin işlenip işlenmediğini öğrenme ve bilgi talep etme.",
-      "Eksik veya yanlış işlenmiş verilerin düzeltilmesini isteme.",
-      "Şartları oluştuğunda verilerin silinmesini veya yok edilmesini talep etme.",
-      "İşlemeye itiraz etme ve otomatik analizlere karşı hak kullanma.",
-      "Kanuna aykırı işlem nedeniyle zarara uğranması halinde tazminat talep etme.",
-    ],
-  },
-] as const;
+} as const;
 
-export default function KvkkPage() {
+export default async function KvkkPage() {
+  const locale = await resolveRequestLocale();
+  const content = KVKK_CONTENT[locale];
+
   return (
-    <MarketingPageShell>
+    <MarketingPageShell locale={locale}>
       <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-sm">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Yasal</p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">KVKK Aydınlatma Metni</h1>
-        <p className="mt-3 text-sm text-slate-600">Son güncelleme: 21 Mayıs 2026</p>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{content.legalLabel}</p>
+        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">{content.title}</h1>
+        <p className="mt-3 text-sm text-slate-600">{content.updatedAt}</p>
       </section>
 
-      <SectionDivider label="KVKK" />
+      <SectionDivider label={content.sectionLabel} />
 
       <section className="grid gap-4">
-        {KVKK_SECTIONS.map((section) => (
+        {content.sections.map((section) => (
           <article key={section.title} className="rounded-2xl border border-slate-200 bg-white/90 p-6">
             <h2 className="text-base font-extrabold text-slate-900 md:text-lg">{section.title}</h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-700">
@@ -85,17 +164,12 @@ export default function KvkkPage() {
       </section>
 
       <section className="mt-4 rounded-2xl border border-slate-200 bg-white/90 p-6 text-sm leading-relaxed text-slate-700">
-        <h2 className="text-base font-extrabold text-slate-900 md:text-lg">7) Başvuru ve İletişim</h2>
-        <p className="mt-3">
-          KVKK kapsamındaki hak taleplerinizi bize aşağıdaki kanallardan iletebilirsiniz:
-          <br />
-          E-posta: <span className="font-semibold">salimaka2014@gmail.com</span>
-          <br />
-          Telefon: <span className="font-semibold">0553 351 7769</span>
-        </p>
-        <p className="mt-3">
-          Bu metin genel bilgilendirme amacı taşır ve hizmet değişiklikleri ile mevzuat güncellemelerine göre yenilenebilir.
-        </p>
+        <h2 className="text-base font-extrabold text-slate-900 md:text-lg">{content.finalTitle}</h2>
+        {content.finalParagraphs.map((paragraph) => (
+          <p key={paragraph} className="mt-3 whitespace-pre-line">
+            {paragraph}
+          </p>
+        ))}
       </section>
     </MarketingPageShell>
   );

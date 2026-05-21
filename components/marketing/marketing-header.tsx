@@ -5,6 +5,7 @@ import { BrandLoadingIndicator } from "@/components/ui/brand-loading-indicator";
 import { LoadingLink } from "@/components/ui/loading-link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocale } from "@/hooks/use-locale";
 import { MARKETING_NAV_LINKS, MarketingLink } from "@/lib/marketing-content";
 import { logout } from "@/services/auth-service";
 import { useState } from "react";
@@ -47,12 +48,14 @@ const HEADER_COPY = {
   },
 } as const;
 
-export function MarketingHeader({ locale = "tr" }: MarketingHeaderProps) {
+export function MarketingHeader({ locale }: MarketingHeaderProps) {
+  const { locale: appLocale } = useLocale();
   const { loading, firebaseUser, userProfile } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const navLinks = NAV_LINKS[locale];
-  const copy = HEADER_COPY[locale];
-  const redirectingText = locale === "tr" ? "Yonlendiriliyor..." : "Redirecting...";
+  const resolvedLocale: MarketingLocale = locale ?? (appLocale === "tr" ? "tr" : "en");
+  const navLinks = NAV_LINKS[resolvedLocale];
+  const copy = HEADER_COPY[resolvedLocale];
+  const redirectingText = resolvedLocale === "tr" ? "Yonlendiriliyor..." : "Redirecting...";
   const dashboardHref = userProfile?.role === "admin" ? "/admin" : "/dashboard";
 
   const handleLogout = async () => {

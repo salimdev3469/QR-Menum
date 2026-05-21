@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { headers } from "next/headers";
 
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
@@ -9,6 +8,7 @@ import { StandShowcaseSection } from "@/components/marketing/stand-showcase-sect
 import { LoadingLink } from "@/components/ui/loading-link";
 import { SectionDivider } from "@/components/marketing/section-divider";
 import { FAQ_ITEMS, FEATURE_BLOCKS } from "@/lib/marketing-content";
+import { resolveRequestLocale } from "@/lib/request-locale";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import { generateQrDataUrl } from "@/services/qr-service";
 
@@ -176,6 +176,7 @@ const HOME_COPY = {
     previewBadge: "Aktif",
     qrImageAlt: "QR kod önizleme",
     previewScanPrompt: "Hemen okut, menü nasıl görünecek gör.",
+    previewDirectCta: "Test Menüsünü Görüntüle",
     previewFootnote: "Bu test QR, örnek public menü görünümünü açar.",
     featuredSectionLabel: "Öne Çıkanlar",
     liveSectionLabel: "Canlı Deneyim",
@@ -207,6 +208,7 @@ const HOME_COPY = {
     previewBadge: "Active",
     qrImageAlt: "QR code preview",
     previewScanPrompt: "Scan now and see how your public menu will look.",
+    previewDirectCta: "View Test Menu",
     previewFootnote: "This test QR opens a sample public menu view.",
     featuredSectionLabel: "Highlights",
     liveSectionLabel: "Live Experience",
@@ -229,30 +231,8 @@ const HOME_COPY = {
   },
 } as const;
 
-function resolveLocaleFromHeaders(requestHeaders: Headers): HomeLocale {
-  const countryHeaderNames = [
-    "x-vercel-ip-country",
-    "cf-ipcountry",
-    "x-country-code",
-    "x-appengine-country",
-  ];
-
-  for (const headerName of countryHeaderNames) {
-    const headerValue = requestHeaders.get(headerName)?.trim();
-    if (!headerValue) {
-      continue;
-    }
-
-    return headerValue.toUpperCase() === "TR" ? "tr" : "en";
-  }
-
-  const acceptLanguage = requestHeaders.get("accept-language")?.toLowerCase() ?? "";
-  return acceptLanguage.startsWith("tr") ? "tr" : "en";
-}
-
 export default async function HomePage() {
-  const requestHeaders = await headers();
-  const locale = resolveLocaleFromHeaders(requestHeaders);
+  const locale = await resolveRequestLocale();
   const copy = HOME_COPY[locale];
   const sloganItems = SLOGAN_ITEMS[locale];
   const quickLinks = QUICK_LINKS[locale];
@@ -301,17 +281,17 @@ export default async function HomePage() {
               {stats.map((item) => (
                 <div
                   key={item.label}
-                  className="flex h-full flex-col justify-between rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-sm"
+                  className="flex h-full min-w-0 flex-col justify-between rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-sm"
                 >
-                  <div>
-                    <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
-                    <p className="mt-0.5 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-[2.25rem]">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase text-slate-500 [overflow-wrap:anywhere]">{item.label}</p>
+                    <p className="mt-0.5 max-w-full text-3xl font-extrabold leading-tight tracking-tight text-slate-900 [overflow-wrap:anywhere] md:text-[2.25rem]">
                       {item.value}
                     </p>
                   </div>
-                  <div className="mt-3 space-y-1.5">
+                  <div className="mt-3 min-w-0 space-y-1.5">
                     {item.showFlags ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         {LANGUAGE_FLAGS.map((flag) => (
                           <span
                             key={flag.id}
@@ -329,7 +309,7 @@ export default async function HomePage() {
                         ))}
                       </div>
                     ) : null}
-                    <p className="text-xs leading-snug text-slate-500">{item.hint}</p>
+                    <p className="text-xs leading-snug text-slate-500 [overflow-wrap:anywhere]">{item.hint}</p>
                   </div>
                 </div>
               ))}
@@ -379,6 +359,14 @@ export default async function HomePage() {
                     )}
                   </a>
                 </div>
+
+                <LoadingLink
+                  href="/menu/test-menu"
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-400"
+                  loadingText={ctaLoadingText}
+                >
+                  {copy.previewDirectCta}
+                </LoadingLink>
 
                 <div className="mt-4 rounded-xl bg-slate-900/65 px-3 py-2 text-xs text-slate-200">
                   {copy.previewFootnote}
@@ -457,7 +445,7 @@ export default async function HomePage() {
 
         <SectionDivider label={copy.pricingSectionLabel} />
         <section>
-          <PricingGrid />
+          <PricingGrid locale={locale} />
         </section>
 
         <SectionDivider label={copy.standSectionLabel} />
