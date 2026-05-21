@@ -282,41 +282,46 @@ export default async function HomePage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 sm:items-stretch">
-              {stats.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex h-full min-w-0 flex-col justify-between rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
-                    <p className="mt-0.5 max-w-full text-[2rem] font-extrabold leading-tight tracking-tight text-slate-900 text-balance sm:text-[2.1rem] lg:text-[2.2rem]">
-                      {item.value}
-                    </p>
+              {stats.map((item) => {
+                const isEnglishLanguageStat = locale === "en" && item.showFlags;
+                const valueClassName = isEnglishLanguageStat
+                  ? "mt-0.5 max-w-full text-[clamp(1.7rem,3.8vw,2.3rem)] font-extrabold leading-tight tracking-tight text-slate-900"
+                  : "mt-0.5 max-w-full text-[2rem] font-extrabold leading-tight tracking-tight text-slate-900 text-balance sm:text-[2.1rem] lg:text-[2.2rem]";
+
+                return (
+                  <div
+                    key={item.label}
+                    className="flex h-full min-w-0 flex-col justify-between rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
+                      <p className={valueClassName}>{item.value}</p>
+                    </div>
+                    <div className="mt-3 min-w-0 space-y-1.5">
+                      {item.showFlags ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {LANGUAGE_FLAGS.map((flag) => (
+                            <span
+                              key={flag.id}
+                              className="overflow-hidden rounded-sm border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
+                            >
+                              <Image
+                                src={flag.src}
+                                alt={flag.alt}
+                                width={30}
+                                height={20}
+                                className="h-[20px] w-[30px] object-cover"
+                                priority={false}
+                              />
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <p className="text-xs leading-snug text-slate-500">{item.hint}</p>
+                    </div>
                   </div>
-                  <div className="mt-3 min-w-0 space-y-1.5">
-                    {item.showFlags ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        {LANGUAGE_FLAGS.map((flag) => (
-                          <span
-                            key={flag.id}
-                            className="overflow-hidden rounded-sm border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
-                          >
-                            <Image
-                              src={flag.src}
-                              alt={flag.alt}
-                              width={30}
-                              height={20}
-                              className="h-[20px] w-[30px] object-cover"
-                              priority={false}
-                            />
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                    <p className="text-xs leading-snug text-slate-500">{item.hint}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
