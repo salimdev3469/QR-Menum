@@ -79,7 +79,7 @@ export function LocaleProvider({
     setLocaleState(value);
   }, []);
 
-  const value = useMemo(
+  const value = useMemo<LocaleContextValue>(
     () => ({
       locale,
       setLocale,
