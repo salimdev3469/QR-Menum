@@ -15,16 +15,62 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { useLocale } from "@/hooks/use-locale";
 import { toUserFriendlyError } from "@/lib/firebase-error";
 import { registerSchema } from "@/lib/validators";
 import { registerBusiness } from "@/services/auth-service";
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
+type RegisterLocale = "tr" | "en";
+
+const REGISTER_COPY = {
+  tr: {
+    submitErrorFallback: "Kayıt sırasında hata oluştu.",
+    title: "Mekan Hesabı Oluştur",
+    description: "İşletme bilgilerinizi girin, paneliniz otomatik oluşturulsun.",
+    name: "Ad Soyad",
+    email: "E-posta",
+    phone: "Telefon",
+    businessCode: "İşletme Kodu",
+    businessCodePlaceholder: "4-20 karakter",
+    password: "Şifre",
+    confirmPassword: "Şifre Tekrar",
+    restaurantName: "İşletme Adı",
+    managerName: "Yetkili Adı",
+    restaurantPhone: "İşletme Telefonu",
+    address: "Adres",
+    submitting: "Kaydediliyor",
+    submit: "Kayıt Ol",
+    hasAccount: "Zaten hesabım var, giriş yap",
+  },
+  en: {
+    submitErrorFallback: "Registration failed.",
+    title: "Create Venue Account",
+    description: "Enter your business details and your dashboard will be created automatically.",
+    name: "Full Name",
+    email: "Email",
+    phone: "Phone",
+    businessCode: "Business Code",
+    businessCodePlaceholder: "4-20 characters",
+    password: "Password",
+    confirmPassword: "Confirm Password",
+    restaurantName: "Business Name",
+    managerName: "Manager Name",
+    restaurantPhone: "Business Phone",
+    address: "Address",
+    submitting: "Saving",
+    submit: "Register",
+    hasAccount: "I already have an account, login",
+  },
+} as const;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { locale } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [submitLocked, setSubmitLocked] = useState(false);
+  const registerLocale: RegisterLocale = locale === "tr" ? "tr" : "en";
+  const copy = REGISTER_COPY[registerLocale];
 
   const {
     register,
@@ -60,7 +106,7 @@ export default function RegisterPage() {
       await registerBusiness(values);
       router.push("/dashboard");
     } catch (submitError) {
-      setError(toUserFriendlyError(submitError, "Kayıt sırasında hata oluştu."));
+      setError(toUserFriendlyError(submitError, copy.submitErrorFallback));
     } finally {
       setSubmitLocked(false);
     }
@@ -70,72 +116,72 @@ export default function RegisterPage() {
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center gap-5 px-4 py-10">
       <BrandLogoLink className="mx-auto" />
       <Card className="w-full">
-        <h1 className="text-2xl font-bold text-slate-900">Mekan Hesabı Oluştur</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{copy.title}</h1>
         <p className="mt-1 text-sm text-slate-600">
-          İşletme bilgilerinizi girin, paneliniz otomatik oluşturulsun.
+          {copy.description}
         </p>
 
         <form className="mt-6" method="post" onSubmit={handleSubmit(onSubmit)}>
           <fieldset className="grid gap-4 border-0 p-0 md:grid-cols-2" disabled={isPending}>
             <div>
-              <Label>Ad Soyad</Label>
+              <Label>{copy.name}</Label>
               <Input {...register("name")} />
               {errors.name ? <p className="mt-1 text-xs text-rose-600">{errors.name.message}</p> : null}
             </div>
             <div>
-              <Label>E-posta</Label>
+              <Label>{copy.email}</Label>
               <Input type="email" {...register("email")} />
               {errors.email ? <p className="mt-1 text-xs text-rose-600">{errors.email.message}</p> : null}
             </div>
             <div>
-              <Label>Telefon</Label>
+              <Label>{copy.phone}</Label>
               <Input {...register("phone")} />
               {errors.phone ? <p className="mt-1 text-xs text-rose-600">{errors.phone.message}</p> : null}
             </div>
             <div>
-              <Label>İşletme Kodu</Label>
-              <Input {...register("businessCode")} placeholder="4-20 karakter" />
+              <Label>{copy.businessCode}</Label>
+              <Input {...register("businessCode")} placeholder={copy.businessCodePlaceholder} />
               {errors.businessCode ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.businessCode.message}</p>
               ) : null}
             </div>
             <div>
-              <Label>Şifre</Label>
+              <Label>{copy.password}</Label>
               <Input type="password" {...register("password")} />
               {errors.password ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.password.message}</p>
               ) : null}
             </div>
             <div>
-              <Label>Şifre Tekrar</Label>
+              <Label>{copy.confirmPassword}</Label>
               <Input type="password" {...register("confirmPassword")} />
               {errors.confirmPassword ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.confirmPassword.message}</p>
               ) : null}
             </div>
             <div>
-              <Label>İşletme Adı</Label>
+              <Label>{copy.restaurantName}</Label>
               <Input {...register("restaurantName")} />
               {errors.restaurantName ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.restaurantName.message}</p>
               ) : null}
             </div>
             <div>
-              <Label>Yetkili Adı</Label>
+              <Label>{copy.managerName}</Label>
               <Input {...register("managerName")} />
               {errors.managerName ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.managerName.message}</p>
               ) : null}
             </div>
             <div className="md:col-span-2">
-              <Label>İşletme Telefonu</Label>
+              <Label>{copy.restaurantPhone}</Label>
               <Input {...register("restaurantPhone")} />
               {errors.restaurantPhone ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.restaurantPhone.message}</p>
               ) : null}
             </div>
             <div className="md:col-span-2">
-              <Label>Adres</Label>
+              <Label>{copy.address}</Label>
               <Textarea {...register("address")} />
               {errors.address ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.address.message}</p>
@@ -152,10 +198,10 @@ export default function RegisterPage() {
               <Button type="submit" disabled={isPending} aria-busy={isPending}>
                 {isPending ? (
                   <span className="inline-flex items-center gap-2">
-                    <Spinner /> Kaydediliyor
+                    <Spinner /> {copy.submitting}
                   </span>
                 ) : (
-                  "Kayıt Ol"
+                  copy.submit
                 )}
               </Button>
               <Link
@@ -165,7 +211,7 @@ export default function RegisterPage() {
                 }`}
                 aria-disabled={isPending}
               >
-                Zaten hesabım var, giriş yap
+                {copy.hasAccount}
               </Link>
             </div>
           </fieldset>

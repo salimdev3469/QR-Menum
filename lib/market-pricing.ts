@@ -20,7 +20,13 @@ export function convertTryAmount(amountTry: number, currency: PricingCurrency): 
     return amountTry;
   }
 
-  return Math.max(1, Math.round(amountTry / USD_TRY_REFERENCE_RATE));
+  const usdRaw = amountTry / USD_TRY_REFERENCE_RATE;
+
+  if (usdRaw >= 100) {
+    return Math.max(10, Math.round(usdRaw / 10) * 10);
+  }
+
+  return Math.max(1, Math.round(usdRaw));
 }
 
 export function formatMarketPriceFromTry(amountTry: number, currency: PricingCurrency): string {

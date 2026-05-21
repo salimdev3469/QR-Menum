@@ -10,20 +10,24 @@ export function formatPrice(price: number, locale = "tr-TR", currency = "TRY") {
 }
 
 export function formatDate(value: FirestoreDate): string {
+  return formatDateByLocale(value, "tr-TR");
+}
+
+export function formatDateByLocale(value: FirestoreDate, locale = "tr-TR"): string {
   if (!value) {
     return "-";
   }
 
   if (typeof value === "string") {
-    return new Date(value).toLocaleString("tr-TR");
+    return new Date(value).toLocaleString(locale);
   }
 
   if (value instanceof Date) {
-    return value.toLocaleString("tr-TR");
+    return value.toLocaleString(locale);
   }
 
   if (typeof value === "object" && "toDate" in value) {
-    return value.toDate().toLocaleString("tr-TR");
+    return value.toDate().toLocaleString(locale);
   }
 
   return "-";
