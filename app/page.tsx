@@ -285,8 +285,15 @@ export default async function HomePage() {
               {stats.map((item) => {
                 const isEnglishLanguageStat = locale === "en" && item.showFlags;
                 const valueClassName = isEnglishLanguageStat
-                  ? "mt-0.5 max-w-full text-[clamp(1.7rem,3.8vw,2.3rem)] font-extrabold leading-tight tracking-tight text-slate-900"
+                  ? "mt-0.5 max-w-full font-extrabold tracking-tight text-slate-900"
                   : "mt-0.5 max-w-full text-[2rem] font-extrabold leading-tight tracking-tight text-slate-900 text-balance sm:text-[2.1rem] lg:text-[2.2rem]";
+                const valueStyle = isEnglishLanguageStat
+                  ? ({
+                      fontSize: "clamp(1.35rem, 2.2vw, 1.8rem)",
+                      lineHeight: 1.08,
+                      overflowWrap: "anywhere",
+                    } as const)
+                  : undefined;
 
                 return (
                   <div
@@ -295,7 +302,9 @@ export default async function HomePage() {
                   >
                     <div className="min-w-0">
                       <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
-                      <p className={valueClassName}>{item.value}</p>
+                      <p className={valueClassName} style={valueStyle}>
+                        {item.value}
+                      </p>
                     </div>
                     <div className="mt-3 min-w-0 space-y-1.5">
                       {item.showFlags ? (
