@@ -5,7 +5,7 @@ import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { PricingGrid } from "@/components/marketing/pricing-grid";
 import { SectionDivider } from "@/components/marketing/section-divider";
 import { FAQ_ITEMS, FAQ_ITEMS_EN } from "@/lib/marketing-content";
-import { resolveRequestLocale } from "@/lib/request-locale";
+import { resolveRequestLocaleContext } from "@/lib/request-locale";
 
 export const metadata: Metadata = {
   title: "Fiyatlandırma | QR Menüm",
@@ -32,14 +32,15 @@ const PRICING_PAGE_COPY = {
 } as const;
 
 export default async function PricingPage() {
-  const locale = await resolveRequestLocale();
+  const requestContext = await resolveRequestLocaleContext();
+  const { locale, pricingCurrency } = requestContext;
   const copy = PRICING_PAGE_COPY[locale];
   const faqItems = locale === "tr" ? FAQ_ITEMS : FAQ_ITEMS_EN;
 
   return (
     <MarketingPageShell locale={locale}>
       <section>
-        <PricingGrid locale={locale} />
+        <PricingGrid locale={locale} pricingCurrency={pricingCurrency} />
       </section>
 
       <SectionDivider label={copy.faqLabel} />

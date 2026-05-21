@@ -2,14 +2,9 @@ import type { Metadata } from "next";
 
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { SectionDivider } from "@/components/marketing/section-divider";
-import { resolveRequestLocale } from "@/lib/request-locale";
+import { resolveRequestLocaleContext } from "@/lib/request-locale";
 
-export const metadata: Metadata = {
-  title: "KVKK Aydınlatma Metni | QR Menüm",
-  description: "QR Menüm kişisel veri işleme süreçlerine ilişkin KVKK aydınlatma metni.",
-};
-
-const KVKK_CONTENT = {
+const LEGAL_DISCLOSURE_CONTENT = {
   tr: {
     legalLabel: "Yasal",
     title: "KVKK Aydınlatma Metni",
@@ -72,17 +67,17 @@ const KVKK_CONTENT = {
       "Bu metin genel bilgilendirme amacı taşır ve hizmet değişiklikleri ile mevzuat güncellemelerine göre yenilenebilir.",
     ],
   },
-  en: {
+  international: {
     legalLabel: "Legal",
-    title: "KVKK Disclosure Text",
+    title: "GDPR Data Protection Notice",
     updatedAt: "Last updated: May 21, 2026",
-    sectionLabel: "KVKK",
+    sectionLabel: "GDPR",
     sections: [
       {
         title: "1) Data Controller",
         items: [
-          "This disclosure text has been prepared by AKA YAZILIM in its capacity as data controller.",
-          "Personal data of natural person users of the QR Menüm platform is processed under Turkish Law No. 6698 (KVKK).",
+          "This notice is provided by AKA YAZILIM as the data controller for QR Menüm services.",
+          "For visitors and customers outside Türkiye, personal data processing is aligned with the principles of Regulation (EU) 2016/679 (GDPR).",
         ],
       },
       {
@@ -94,51 +89,75 @@ const KVKK_CONTENT = {
         ],
       },
       {
-        title: "3) Purposes of Processing Personal Data",
+        title: "3) Purposes and Legal Bases of Processing",
         items: [
-          "To create platform membership, verify the account, and provide the service securely.",
-          "To run technical support, notifications, operations, and customer relationship processes.",
-          "To meet legal obligations and prevent abuse and security risks.",
-          "With explicit consent, to conduct performance and product development analysis.",
+          "To create and manage your account, verify identity, and deliver the requested service (GDPR Art. 6(1)(b)).",
+          "To run support, operations, abuse prevention, and platform security controls based on legitimate interests (GDPR Art. 6(1)(f)).",
+          "To fulfill legal obligations including accounting, tax, and regulatory duties (GDPR Art. 6(1)(c)).",
+          "To run optional analytics and product-improvement activities where consent is required (GDPR Art. 6(1)(a)).",
         ],
       },
       {
-        title: "4) Data Transfer",
+        title: "4) Data Transfers and International Processing",
         items: [
           "Data may be transferred to hosting, storage, authentication, and email service providers used for service operation.",
           "Information may be shared with authorized public institutions and organizations when legally required.",
-          "Transfers are carried out with appropriate technical and administrative safeguards under Articles 8 and 9 of KVKK.",
+          "When personal data is transferred outside the EEA, appropriate safeguards such as contractual protections and security controls are applied in line with GDPR Chapter V.",
         ],
       },
       {
-        title: "5) Collection Method and Legal Basis",
+        title: "5) Collection Methods and Retention",
         items: [
           "Data is collected through registration forms, panel actions, cookie preferences, support requests, and automated logging mechanisms.",
-          "Processing activities rely on legal bases including contract establishment/performance, legal obligations, legitimate interest, and explicit consent.",
+          "Data is retained only for as long as necessary for service delivery, legal obligations, and security/audit needs, then deleted or anonymized.",
         ],
       },
       {
-        title: "6) Data Subject Rights (KVKK Article 11)",
+        title: "6) Data Subject Rights (GDPR Articles 15-22)",
         items: [
-          "To learn whether your personal data is processed and request related information.",
-          "To request correction of incomplete or inaccurate data.",
-          "To request deletion or destruction of data when legal conditions are met.",
-          "To object to processing and exercise rights against automated analysis.",
-          "To request compensation in case of damage due to unlawful processing.",
+          "Right of access, rectification, and erasure.",
+          "Right to restriction of processing and right to object to processing.",
+          "Right to data portability where applicable.",
+          "Right to withdraw consent at any time for consent-based processing.",
+          "Right not to be subject to solely automated decisions where legally applicable.",
+        ],
+      },
+      {
+        title: "7) Complaints and Supervisory Authorities",
+        items: [
+          "You may submit privacy requests directly to us through the contact channels below.",
+          "You may also lodge a complaint with your local supervisory authority in your jurisdiction when applicable.",
         ],
       },
     ],
-    finalTitle: "7) Application and Contact",
+    finalTitle: "8) Contact",
     finalParagraphs: [
-      "You can submit your KVKK rights requests through:\nEmail: salimaka2014@gmail.com\nPhone: 0553 351 7769",
-      "This text is for general information purposes and may be updated according to service changes and legal updates.",
+      "For GDPR and privacy requests, contact us via:\nEmail: salimaka2014@gmail.com\nPhone: 0553 351 7769",
+      "This notice provides a general disclosure framework and may be updated in line with service changes and legal requirements.",
     ],
   },
 } as const;
 
+export async function generateMetadata(): Promise<Metadata> {
+  const requestContext = await resolveRequestLocaleContext();
+
+  if (requestContext.market === "tr") {
+    return {
+      title: "KVKK Aydınlatma Metni | QR Menüm",
+      description: "QR Menüm kişisel veri işleme süreçlerine ilişkin KVKK aydınlatma metni.",
+    };
+  }
+
+  return {
+    title: "GDPR Data Protection Notice | QR Menüm",
+    description: "GDPR-focused data protection notice for visitors and customers outside Türkiye.",
+  };
+}
+
 export default async function KvkkPage() {
-  const locale = await resolveRequestLocale();
-  const content = KVKK_CONTENT[locale];
+  const requestContext = await resolveRequestLocaleContext();
+  const { locale, market } = requestContext;
+  const content = market === "tr" ? LEGAL_DISCLOSURE_CONTENT.tr : LEGAL_DISCLOSURE_CONTENT.international;
 
   return (
     <MarketingPageShell locale={locale}>

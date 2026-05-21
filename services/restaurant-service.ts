@@ -66,7 +66,6 @@ function normalizeRestaurant(restaurantId: string, raw: Partial<Restaurant>): Re
     phone: raw.phone ?? "",
     address: raw.address ?? "",
     slug: raw.slug ?? "",
-    logoUrl: raw.logoUrl ?? "",
     backgroundImageUrl: raw.backgroundImageUrl ?? "",
     isActive: raw.isActive !== false,
     createdAt: raw.createdAt ?? null,
@@ -124,7 +123,6 @@ export async function createRestaurant(input: CreateRestaurantInput): Promise<Re
     phone: input.phone,
     address: input.address,
     slug,
-    logoUrl: "",
     backgroundImageUrl: "",
     isActive: true,
     createdAt: serverTimestamp(),
@@ -231,7 +229,7 @@ export async function updateRestaurantPlanByAdmin(
 
 export async function updateRestaurantImageUrls(
   restaurantId: string,
-  payload: Partial<Pick<Restaurant, "logoUrl" | "backgroundImageUrl">>,
+  payload: Partial<Pick<Restaurant, "backgroundImageUrl">>,
 ): Promise<void> {
   const restaurantRef = doc(firestoreDb, "restaurants", restaurantId);
 

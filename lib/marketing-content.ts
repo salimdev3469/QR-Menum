@@ -82,8 +82,8 @@ export const PRICING_PLANS: PricingPlan[] = [
 export const PRICING_PLANS_EN: PricingPlan[] = [
   {
     name: "Starter",
-    monthlyPrice: "₺790",
-    annualPrice: "₺7.900",
+    monthlyPrice: "$18",
+    annualPrice: "$176",
     annualNote: "2 months free on annual billing",
     description: "Core modules for businesses just getting started.",
     features: [
@@ -98,8 +98,8 @@ export const PRICING_PLANS_EN: PricingPlan[] = [
   },
   {
     name: "Growth",
-    monthlyPrice: "₺1.490",
-    annualPrice: "₺14.900",
+    monthlyPrice: "$33",
+    annualPrice: "$331",
     annualNote: "Annual price lock + priority support",
     description: "For businesses aiming for more sales and stronger menu structure.",
     features: [
@@ -114,8 +114,8 @@ export const PRICING_PLANS_EN: PricingPlan[] = [
   },
   {
     name: "Premium",
-    monthlyPrice: "₺2.490",
-    annualPrice: "₺24.900",
+    monthlyPrice: "$55",
+    annualPrice: "$553",
     annualNote: "Annual onboarding and operations support",
     description: "For businesses growing menu revenue via campaigns and automation.",
     features: [
@@ -143,6 +143,7 @@ export const PRICING_POLICY_ITEMS_EN = [
   "14-day free trial, no credit card required.",
   "Monthly plans are commitment-free and renew automatically at period end.",
   "Annual plans provide a 12-month price lock and upfront pricing advantage.",
+  "For international visitors, prices are displayed in USD based on a reference TRY/USD rate.",
   "For early cancellation in annual plans, the discount difference is charged per contract terms.",
   "Module scope varies by selected plan and is clearly stated in the agreement.",
   "Contract and renewal terms are shown with explicit confirmation before payment.",
@@ -175,7 +176,7 @@ export const FEATURE_BLOCKS: FeatureBlock[] = [
     title: "Markaya Uygun Menü",
     description:
       "Menü renklerini markanıza göre ayarlayın; açık/koyu stil ve görsellerle bütünlüklü bir sunum hazırlayın.",
-    bullets: ["Ana renk + vurgu rengi", "Açık/koyu menü stili", "Logo + arka plan yönetimi"],
+    bullets: ["Ana renk + vurgu rengi", "Açık/koyu menü stili", "Arka plan görseli yönetimi"],
   },
   {
     title: "Promosyon Yönetimi",

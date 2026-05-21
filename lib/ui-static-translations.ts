@@ -253,23 +253,11 @@ const STATIC_UI_TRANSLATIONS: Record<string, LocalizedTextMap> = {
     ru: "По умолчанию",
     ar: "افتراضي",
   },
-  "Logoyu Sil": {
-    tr: "Logoyu Sil",
-    en: "Delete Logo",
-    ru: "Удалить логотип",
-    ar: "حذف الشعار",
-  },
   "Arka Planı Sil": {
     tr: "Arka Planı Sil",
     en: "Delete Background",
     ru: "Удалить фон",
     ar: "حذف الخلفية",
-  },
-  "Logo": {
-    tr: "Logo",
-    en: "Logo",
-    ru: "Логотип",
-    ar: "الشعار",
   },
   "Galeri": {
     tr: "Galeri",

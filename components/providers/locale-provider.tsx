@@ -15,12 +15,16 @@ import {
   LOCALE_TEXT_DIRECTION,
   SUPPORTED_LOCALES,
 } from "@/lib/constants";
+import type { PricingCurrency, VisitorMarket } from "@/lib/request-locale";
 import { SupportedLocale } from "@/types";
 
 interface LocaleContextValue {
   locale: SupportedLocale;
   setLocale: (value: SupportedLocale) => void;
   direction: "ltr" | "rtl";
+  market: VisitorMarket;
+  pricingCurrency: PricingCurrency;
+  isInternationalVisitor: boolean;
 }
 
 const LocaleContext = createContext<LocaleContextValue | undefined>(undefined);
@@ -31,9 +35,11 @@ const MANUAL_STORAGE_KEY = "qr-menu-locale-manual";
 export function LocaleProvider({
   children,
   initialLocale = DEFAULT_LOCALE,
-}: PropsWithChildren<{ initialLocale?: SupportedLocale }>) {
+  initialMarket = initialLocale === "tr" ? "tr" : "international",
+}: PropsWithChildren<{ initialLocale?: SupportedLocale; initialMarket?: VisitorMarket }>) {
   const [locale, setLocaleState] = useState<SupportedLocale>(initialLocale);
   const [hasManualPreference, setHasManualPreference] = useState(false);
+  const [market, setMarket] = useState<VisitorMarket>(initialMarket);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as SupportedLocale | null;
@@ -62,6 +68,10 @@ export function LocaleProvider({
     document.documentElement.dir = LOCALE_TEXT_DIRECTION[locale];
   }, [locale]);
 
+  useEffect(() => {
+    setMarket(initialMarket);
+  }, [initialMarket]);
+
   const setLocale = useCallback((value: SupportedLocale) => {
     localStorage.setItem(MANUAL_STORAGE_KEY, "1");
     localStorage.setItem(STORAGE_KEY, value);
@@ -74,8 +84,11 @@ export function LocaleProvider({
       locale,
       setLocale,
       direction: LOCALE_TEXT_DIRECTION[locale],
+      market,
+      pricingCurrency: market === "tr" ? "TRY" : "USD",
+      isInternationalVisitor: market !== "tr",
     }),
-    [locale, setLocale],
+    [locale, market, setLocale],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

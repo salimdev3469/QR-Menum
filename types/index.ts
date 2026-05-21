@@ -52,7 +52,6 @@ export interface Restaurant {
   phone: string;
   address: string;
   slug: string;
-  logoUrl: string;
   backgroundImageUrl: string;
   isActive: boolean;
   createdAt: FirestoreDate;

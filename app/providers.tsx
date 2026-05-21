@@ -7,14 +7,15 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import { LocaleProvider } from "@/components/providers/locale-provider";
 import { UiTranslatorProvider } from "@/components/providers/ui-translator-provider";
 import { NavigationLoadingHud } from "@/components/ui/navigation-loading-hud";
-import type { MarketingLocale } from "@/lib/request-locale";
+import type { MarketingLocale, VisitorMarket } from "@/lib/request-locale";
 
 export function Providers({
   children,
   initialLocale,
-}: PropsWithChildren<{ initialLocale: MarketingLocale }>) {
+  initialMarket,
+}: PropsWithChildren<{ initialLocale: MarketingLocale; initialMarket: VisitorMarket }>) {
   return (
-    <LocaleProvider initialLocale={initialLocale}>
+    <LocaleProvider initialLocale={initialLocale} initialMarket={initialMarket}>
       <AuthProvider>
         <UiTranslatorProvider />
         <Suspense fallback={null}>

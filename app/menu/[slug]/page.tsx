@@ -12,7 +12,7 @@ import { getDemoPublicMenuData } from "@/lib/demo-public-menu";
 import { getLocalizedText } from "@/lib/localized";
 import { isPromotionLive } from "@/lib/menu-features";
 import { canUseWaiterCalls } from "@/lib/plan";
-import { t } from "@/lib/i18n";
+import { localizeAllergenName, localizeProductLabel, t } from "@/lib/i18n";
 import { useLocale } from "@/hooks/use-locale";
 import { listPublicCategories } from "@/services/category-service";
 import { listPublicMenuItemsByRestaurant } from "@/services/menu-service";
@@ -285,7 +285,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     );
   }
 
-  const bannerImageUrl = restaurant.backgroundImageUrl || restaurant.logoUrl || "";
+  const bannerImageUrl = restaurant.backgroundImageUrl || "";
   const hasBannerImage = Boolean(bannerImageUrl);
   const design = restaurant.menuDesign;
   const isDarkTheme = design.backgroundStyle === "dark";
@@ -320,6 +320,8 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
       item.isDiscounted && item.discountPrice !== null ? item.discountPrice : null;
     const hasDiscount = discountPriceValue !== null;
     const availableVariations = (item.variations ?? []).filter((variation) => variation.isAvailable);
+    const localizedLabels = (item.labels ?? []).map((label) => localizeProductLabel(label, locale));
+    const localizedAllergens = (item.allergens ?? []).map((allergen) => localizeAllergenName(allergen, locale));
 
     return (
       <article
@@ -363,9 +365,9 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
               {localizedDescription}
             </p>
 
-            {item.labels?.length ? (
+            {localizedLabels.length ? (
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {item.labels.map((label) => (
+                {localizedLabels.map((label) => (
                   <span
                     key={`${item.id}-label-${label}`}
                     className="rounded-full border px-2 py-0.5 text-[10px] font-bold"
@@ -422,9 +424,9 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
               </div>
             ) : null}
 
-            {item.allergens?.length ? (
+            {localizedAllergens.length ? (
               <p className="mt-2 text-xs" style={{ color: subtitleColor }}>
-                {t("allergen", locale)}: {item.allergens.join(", ")}
+                {t("allergen", locale)}: {localizedAllergens.join(", ")}
               </p>
             ) : null}
           </div>
@@ -466,13 +468,6 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
           <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
             <div className="menu-fade-in mx-auto max-w-4xl">
               <div className="flex flex-col items-center gap-4 text-center">
-                {restaurant.logoUrl ? (
-                  <img
-                    src={restaurant.logoUrl}
-                    alt={restaurant.name}
-                    className="h-20 w-20 rounded-2xl border border-white/35 bg-white/95 object-cover shadow-lg"
-                  />
-                ) : null}
                 <div className="min-w-0 text-white">
                   <h1 className="line-clamp-2 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                     {getLocalizedText(restaurant.nameI18n, locale, restaurant.name)}

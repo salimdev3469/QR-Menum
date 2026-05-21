@@ -14,18 +14,15 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { useLocale } from "@/hooks/use-locale";
+import { formatMarketPriceFromTry, SYSTEM_PLAN_PRICES_TRY } from "@/lib/market-pricing";
 import { systemOrderSchema } from "@/lib/validators";
 import { createSystemOrder } from "@/services/system-order-service";
 
 type SystemOrderValues = z.infer<typeof systemOrderSchema>;
 
-const planPrices = {
-  Starter: { monthly: 790, annual: 7900 },
-  Growth: { monthly: 1490, annual: 14900 },
-  Premium: { monthly: 2490, annual: 24900 },
-} as const;
-
 export default function PurchasePage() {
+  const { pricingCurrency, isInternationalVisitor } = useLocale();
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const {
@@ -57,7 +54,8 @@ export default function PurchasePage() {
 
   const planName = useWatch({ control, name: "planName" }) ?? "Growth";
   const billingCycle = useWatch({ control, name: "billingCycle" }) ?? "monthly";
-  const amount = useMemo(() => planPrices[planName][billingCycle], [billingCycle, planName]);
+  const amountTry = useMemo(() => SYSTEM_PLAN_PRICES_TRY[planName][billingCycle], [billingCycle, planName]);
+  const amountLabel = formatMarketPriceFromTry(amountTry, pricingCurrency);
 
   const onSubmit = handleSubmit(async (values) => {
     setFeedback(null);
@@ -186,11 +184,16 @@ export default function PurchasePage() {
           </p>
           <p className="mt-2 text-base text-slate-900">
             <span className="font-semibold">Tutar:</span>{" "}
-            <span className="font-bold">₺{amount.toLocaleString("tr-TR")}</span>
+            <span className="font-bold">{amountLabel}</span>
           </p>
           <p className="mt-4 text-xs text-slate-500">
             Bu form bir satın alım talebi oluşturur; nihai sözleşme ve ödeme satış ekibi üzerinden ilerler.
           </p>
+          {isInternationalVisitor ? (
+            <p className="mt-2 text-xs text-slate-500">
+              Uluslararası görüntüde USD fiyatlar referans TRY/USD kuruna göre gösterilir.
+            </p>
+          ) : null}
         </Card>
       </div>
     </MarketingPageShell>

@@ -57,7 +57,7 @@ const LEGAL_LINKS: Record<MarketingLocale, MarketingLink[]> = {
     { href: "/cookies", label: "Çerez Politikası" },
   ],
   en: [
-    { href: "/kvkk", label: "KVKK Disclosure" },
+    { href: "/kvkk", label: "GDPR Data Notice" },
     { href: "/privacy", label: "Privacy Policy" },
     { href: "/terms", label: "Terms of Use" },
     { href: "/cookies", label: "Cookie Policy" },
@@ -85,7 +85,7 @@ const FOOTER_COPY = {
     contactAndLegalTitle: "Contact & Legal",
     linkLoadingText: "Redirecting...",
     rights: "All rights reserved by AKA YAZILIM.",
-    marketNote: "Built for the Turkish market.",
+    marketNote: "International GDPR and USD pricing view enabled.",
   },
 } as const;
 

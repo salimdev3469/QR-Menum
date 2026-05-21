@@ -7,8 +7,9 @@ import { SessionAwarePrimaryCta } from "@/components/marketing/session-aware-pri
 import { StandShowcaseSection } from "@/components/marketing/stand-showcase-section";
 import { LoadingLink } from "@/components/ui/loading-link";
 import { SectionDivider } from "@/components/marketing/section-divider";
+import { formatMarketPriceFromTry } from "@/lib/market-pricing";
 import { FAQ_ITEMS, FEATURE_BLOCKS } from "@/lib/marketing-content";
-import { resolveRequestLocale } from "@/lib/request-locale";
+import { resolveRequestLocaleContext } from "@/lib/request-locale";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import { generateQrDataUrl } from "@/services/qr-service";
 
@@ -190,7 +191,7 @@ const HOME_COPY = {
     standSectionLabel: "QR Stant",
     standTitle: "Masalar için hazır QR stantlarını tek adımda sipariş verin.",
     standDescription:
-      `Masa sayınızı girin, hazır tasarım seçin veya kendi tasarımınızı yükleyin. Stant başı ₺${STAND_UNIT_PRICE} fiyatla siparişler doğrudan operasyon panelimize düşer.`,
+      "Masa sayınızı girin, hazır tasarım seçin veya kendi tasarımınızı yükleyin. Stant başı {{price}} fiyatla siparişler doğrudan operasyon panelimize düşer.",
     standPrimaryCta: "Stant Siparişi Ver",
     standSecondaryCta: "Sistem Satın Al",
     standImageAlt: "QR menü stand örneği",
@@ -222,7 +223,7 @@ const HOME_COPY = {
     standSectionLabel: "QR Stand",
     standTitle: "Order ready-to-use table QR stands in one step.",
     standDescription:
-      `Enter your table count, pick a preset design, or upload your own artwork. At ₺${STAND_UNIT_PRICE} per stand, orders drop directly into our operations panel.`,
+      "Enter your table count, pick a preset design, or upload your own artwork. At {{price}} per stand, orders drop directly into our operations panel.",
     standPrimaryCta: "Order QR Stands",
     standSecondaryCta: "Buy the System",
     standImageAlt: "QR menu stand sample",
@@ -232,7 +233,8 @@ const HOME_COPY = {
 } as const;
 
 export default async function HomePage() {
-  const locale = await resolveRequestLocale();
+  const requestContext = await resolveRequestLocaleContext();
+  const { locale, pricingCurrency } = requestContext;
   const copy = HOME_COPY[locale];
   const sloganItems = SLOGAN_ITEMS[locale];
   const quickLinks = QUICK_LINKS[locale];
@@ -242,6 +244,8 @@ export default async function HomePage() {
   const faqItems = locale === "tr" ? FAQ_ITEMS.slice(0, 4) : FAQ_ITEMS_EN;
   const ctaLoadingText = locale === "tr" ? "Yonlendiriliyor..." : "Redirecting...";
   const previewMenu = buildHomepagePreviewMenuConfig();
+  const standUnitPrice = formatMarketPriceFromTry(STAND_UNIT_PRICE, pricingCurrency);
+  const standDescription = copy.standDescription.replace("{{price}}", standUnitPrice);
   const previewQrDataUrl = await generateQrDataUrl(previewMenu.targetUrl).catch(() => "");
 
   return (
@@ -284,8 +288,8 @@ export default async function HomePage() {
                   className="flex h-full min-w-0 flex-col justify-between rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-sm"
                 >
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase text-slate-500 [overflow-wrap:anywhere]">{item.label}</p>
-                    <p className="mt-0.5 max-w-full text-3xl font-extrabold leading-tight tracking-tight text-slate-900 [overflow-wrap:anywhere] md:text-[2.25rem]">
+                    <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
+                    <p className="mt-0.5 max-w-full text-[2rem] font-extrabold leading-tight tracking-tight text-slate-900 text-balance sm:text-[2.1rem] lg:text-[2.2rem]">
                       {item.value}
                     </p>
                   </div>
@@ -309,7 +313,7 @@ export default async function HomePage() {
                         ))}
                       </div>
                     ) : null}
-                    <p className="text-xs leading-snug text-slate-500 [overflow-wrap:anywhere]">{item.hint}</p>
+                    <p className="text-xs leading-snug text-slate-500">{item.hint}</p>
                   </div>
                 </div>
               ))}
@@ -445,14 +449,14 @@ export default async function HomePage() {
 
         <SectionDivider label={copy.pricingSectionLabel} />
         <section>
-          <PricingGrid locale={locale} />
+          <PricingGrid locale={locale} pricingCurrency={pricingCurrency} />
         </section>
 
         <SectionDivider label={copy.standSectionLabel} />
         <StandShowcaseSection
           sectionLabel={copy.standSectionLabel}
           title={copy.standTitle}
-          description={copy.standDescription}
+          description={standDescription}
           imageAlt={copy.standImageAlt}
           primaryCta={copy.standPrimaryCta}
           secondaryCta={copy.standSecondaryCta}

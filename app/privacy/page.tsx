@@ -104,7 +104,7 @@ const PRIVACY_CONTENT = {
           "Your personal data is not sold, rented, or transferred to third parties for commercial purposes.",
           "Limited sharing may occur with hosting, authentication, storage, and email providers required for service operation.",
           "Information may be shared with authorized public authorities when legally required and duly requested.",
-          "Depending on infrastructure, data may be processed in secure domestic or international cloud systems.",
+          "Depending on infrastructure, data may be processed in secure domestic or international cloud systems with safeguards appropriate to GDPR transfer requirements.",
         ],
       },
       {
@@ -123,9 +123,9 @@ const PRIVACY_CONTENT = {
         ],
       },
       {
-        title: "6) User Rights",
+        title: "6) User Rights (GDPR)",
         items: [
-          "Under KVKK, you have rights to access, correct, delete, restrict processing of, and object to your personal data.",
+          "Under GDPR, you have rights to access, correct, delete, restrict processing of, object to processing, and request portability of your personal data where applicable.",
           "You can submit your requests through the contact channels below and receive a response within legal timeframes.",
         ],
       },

@@ -68,10 +68,6 @@ async function uploadFile(path: string, file: File, options?: UploadFileOptions)
   };
 }
 
-export async function uploadLogo(restaurantId: string, file: File) {
-  return uploadFile(`restaurants/${restaurantId}/logo/logo.webp`, file);
-}
-
 export async function uploadBackground(restaurantId: string, file: File) {
   return uploadFile(`restaurants/${restaurantId}/background/background.webp`, file);
 }

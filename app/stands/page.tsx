@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { useLocale } from "@/hooks/use-locale";
+import { formatMarketPriceFromTry } from "@/lib/market-pricing";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import { Textarea } from "@/components/ui/textarea";
 import { standOrderSchema } from "@/lib/validators";
@@ -31,6 +33,7 @@ const designPresets = [
 type StandOrderValues = z.infer<typeof standOrderSchema>;
 
 export default function StandsPage() {
+  const { pricingCurrency, isInternationalVisitor } = useLocale();
   const [file, setFile] = useState<File | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -56,7 +59,9 @@ export default function StandsPage() {
 
   const tableCount = watch("tableCount") || 0;
   const designType = watch("designType");
-  const totalPrice = useMemo(() => Math.max(0, tableCount) * STAND_UNIT_PRICE, [tableCount]);
+  const totalPriceTry = useMemo(() => Math.max(0, tableCount) * STAND_UNIT_PRICE, [tableCount]);
+  const unitPriceLabel = formatMarketPriceFromTry(STAND_UNIT_PRICE, pricingCurrency);
+  const totalPriceLabel = formatMarketPriceFromTry(totalPriceTry, pricingCurrency);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selected = event.target.files?.[0] ?? null;
@@ -122,7 +127,7 @@ export default function StandsPage() {
         <Card>
           <h1 className="text-2xl font-bold text-slate-900">QR Menüm Stant Siparişi</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Stant başı fiyat ₺{STAND_UNIT_PRICE}. Masa sayınızı girin, tasarımı seçin veya kendi görselinizi yükleyin.
+            Stant başı fiyat {unitPriceLabel}. Masa sayınızı girin, tasarımı seçin veya kendi görselinizi yükleyin.
           </p>
 
           <form className="mt-5 grid gap-3 md:grid-cols-2" onSubmit={onSubmit}>
@@ -227,19 +232,24 @@ export default function StandsPage() {
           <h2 className="text-lg font-bold text-slate-900">Sipariş Özeti</h2>
           <div className="mt-3 space-y-2 text-sm text-slate-700">
             <p>
-              <span className="font-semibold">Birim fiyat:</span> ₺{STAND_UNIT_PRICE}
+              <span className="font-semibold">Birim fiyat:</span> {unitPriceLabel}
             </p>
             <p>
               <span className="font-semibold">Masa sayısı:</span> {tableCount}
             </p>
             <p className="text-base">
               <span className="font-semibold">Toplam:</span>{" "}
-              <span className="font-bold text-slate-900">₺{totalPrice.toLocaleString("tr-TR")}</span>
+              <span className="font-bold text-slate-900">{totalPriceLabel}</span>
             </p>
           </div>
           <p className="mt-4 text-xs text-slate-500">
             Sipariş admin paneline düşer; üretim ve kargo durumunu ekip tarafı takip eder.
           </p>
+          {isInternationalVisitor ? (
+            <p className="text-xs text-slate-500">
+              Uluslararası görüntüde USD fiyatlar referans TRY/USD kuruna göre gösterilir.
+            </p>
+          ) : null}
         </Card>
       </div>
     </MarketingPageShell>

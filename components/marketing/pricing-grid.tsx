@@ -5,10 +5,13 @@ import {
   PRICING_POLICY_ITEMS,
   PRICING_POLICY_ITEMS_EN,
 } from "@/lib/marketing-content";
-import type { MarketingLocale } from "@/lib/request-locale";
+import { formatMarketPriceFromTry, SYSTEM_PLAN_PRICES_TRY } from "@/lib/market-pricing";
+import type { SystemPlanName } from "@/lib/market-pricing";
+import type { MarketingLocale, PricingCurrency } from "@/lib/request-locale";
 
 interface PricingGridProps {
   locale?: MarketingLocale;
+  pricingCurrency?: PricingCurrency;
 }
 
 const PRICING_COPY = {
@@ -44,10 +47,18 @@ const PRICING_COPY = {
   },
 } as const;
 
-export function PricingGrid({ locale = "tr" }: PricingGridProps) {
+export function PricingGrid({ locale = "tr", pricingCurrency = locale === "tr" ? "TRY" : "USD" }: PricingGridProps) {
   const copy = PRICING_COPY[locale];
   const plans = locale === "tr" ? PRICING_PLANS : PRICING_PLANS_EN;
   const policyItems = locale === "tr" ? PRICING_POLICY_ITEMS : PRICING_POLICY_ITEMS_EN;
+  const resolvePlanPrices = (planName: string) => {
+    const planPrices = SYSTEM_PLAN_PRICES_TRY[planName as SystemPlanName] ?? SYSTEM_PLAN_PRICES_TRY.Starter;
+
+    return {
+      monthlyPrice: formatMarketPriceFromTry(planPrices.monthly, pricingCurrency),
+      annualPrice: formatMarketPriceFromTry(planPrices.annual, pricingCurrency),
+    };
+  };
 
   return (
     <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/75 p-5 text-slate-900 shadow-sm backdrop-blur-sm md:p-8">
@@ -67,7 +78,10 @@ export function PricingGrid({ locale = "tr" }: PricingGridProps) {
 
       <div className="relative mt-6 grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid gap-4 md:grid-cols-3">
-          {plans.map((plan) => (
+          {plans.map((plan) => {
+            const { monthlyPrice, annualPrice } = resolvePlanPrices(plan.name);
+
+            return (
             <article
               key={plan.name}
               className={`rounded-2xl border p-4 ${
@@ -86,11 +100,11 @@ export function PricingGrid({ locale = "tr" }: PricingGridProps) {
 
               <div className="mt-4">
                 <p className="text-sm text-slate-500">{copy.monthlyLabel}</p>
-                <p className="text-3xl font-extrabold">{plan.monthlyPrice}</p>
+                <p className="text-3xl font-extrabold">{monthlyPrice}</p>
               </div>
               <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
                 <p className="text-xs text-slate-500">{copy.annualLabel}</p>
-                <p className="text-lg font-extrabold">{plan.annualPrice}</p>
+                <p className="text-lg font-extrabold">{annualPrice}</p>
                 <p className="text-[11px] text-emerald-700">{plan.annualNote}</p>
               </div>
 
@@ -115,7 +129,8 @@ export function PricingGrid({ locale = "tr" }: PricingGridProps) {
                 {plan.cta}
               </LoadingLink>
             </article>
-          ))}
+            );
+          })}
         </div>
 
         <aside className="rounded-2xl border border-slate-200 bg-white p-4">

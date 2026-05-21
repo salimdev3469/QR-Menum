@@ -334,7 +334,6 @@ export function getDemoPublicMenuData(slug: string): DemoPublicMenuData | null {
       phone: "+90 212 000 00 00",
       address: "Atatürk Cad. No:45, İstanbul",
       slug: normalizedSlug,
-      logoUrl: "/icon.png",
       backgroundImageUrl: DEMO_MEDIA_URLS.cafe,
       isActive: true,
       createdAt: null,

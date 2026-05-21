@@ -258,6 +258,153 @@ const dictionary = {
 
 type DictionaryKey = keyof typeof dictionary;
 
+type MenuTokenCatalog = Record<string, Record<SupportedLocale, string>>;
+
+const MENU_LABEL_TRANSLATIONS: MenuTokenCatalog = {
+  demo: {
+    tr: "Demo",
+    en: "Demo",
+    ru: "Демо",
+    ar: "تجريبي",
+  },
+  popular: {
+    tr: "Popüler",
+    en: "Popular",
+    ru: "Популярное",
+    ar: "الأكثر طلباً",
+  },
+  chefSpecial: {
+    tr: "Şef Özel",
+    en: "Chef's Special",
+    ru: "Спецблюдо шефа",
+    ar: "اختيار الشيف",
+  },
+  seasonal: {
+    tr: "Sezonluk",
+    en: "Seasonal",
+    ru: "Сезонное",
+    ar: "موسمي",
+  },
+  new: {
+    tr: "Yeni",
+    en: "New",
+    ru: "Новинка",
+    ar: "جديد",
+  },
+  deal: {
+    tr: "Fırsat",
+    en: "Deal",
+    ru: "Выгодно",
+    ar: "عرض",
+  },
+  favorite: {
+    tr: "Favori",
+    en: "Favorite",
+    ru: "Любимое",
+    ar: "مفضل",
+  },
+  soldOut: {
+    tr: "Tükendi",
+    en: "Sold Out",
+    ru: "Нет в наличии",
+    ar: "نفد",
+  },
+};
+
+const MENU_ALLERGEN_TRANSLATIONS: MenuTokenCatalog = {
+  gluten: {
+    tr: "Gluten",
+    en: "Gluten",
+    ru: "Глютен",
+    ar: "غلوتين",
+  },
+  egg: {
+    tr: "Yumurta",
+    en: "Egg",
+    ru: "Яйцо",
+    ar: "بيض",
+  },
+  dairy: {
+    tr: "Süt Ürünleri",
+    en: "Dairy",
+    ru: "Молочные продукты",
+    ar: "منتجات الألبان",
+  },
+  peanut: {
+    tr: "Yer Fıstığı",
+    en: "Peanut",
+    ru: "Арахис",
+    ar: "فول سوداني",
+  },
+  soy: {
+    tr: "Soya",
+    en: "Soy",
+    ru: "Соя",
+    ar: "صويا",
+  },
+  shellfish: {
+    tr: "Kabuklu Deniz Ürünleri",
+    en: "Shellfish",
+    ru: "Ракообразные",
+    ar: "محار وقشريات",
+  },
+  treeNuts: {
+    tr: "Sert Kabuklu Kuruyemiş",
+    en: "Tree Nuts",
+    ru: "Орехи",
+    ar: "مكسرات شجرية",
+  },
+  fish: {
+    tr: "Balık",
+    en: "Fish",
+    ru: "Рыба",
+    ar: "سمك",
+  },
+};
+
+function normalizeMenuToken(value: string): string {
+  return value.trim().toLocaleLowerCase("tr-TR").replace(/\s+/g, " ");
+}
+
+function buildTokenAliasMap(catalog: MenuTokenCatalog): Map<string, string> {
+  const aliasMap = new Map<string, string>();
+
+  for (const [tokenKey, translations] of Object.entries(catalog)) {
+    for (const locale of Object.keys(translations) as SupportedLocale[]) {
+      aliasMap.set(normalizeMenuToken(translations[locale]), tokenKey);
+    }
+  }
+
+  return aliasMap;
+}
+
+function localizeMenuToken(
+  rawValue: string,
+  locale: SupportedLocale,
+  catalog: MenuTokenCatalog,
+  aliasMap: Map<string, string>,
+): string {
+  const normalized = normalizeMenuToken(rawValue);
+  const tokenKey = aliasMap.get(normalized);
+
+  if (!tokenKey) {
+    return rawValue;
+  }
+
+  return catalog[tokenKey]?.[locale] ?? rawValue;
+}
+
+const menuLabelAliasMap = buildTokenAliasMap(MENU_LABEL_TRANSLATIONS);
+const menuAllergenAliasMap = buildTokenAliasMap(MENU_ALLERGEN_TRANSLATIONS);
+
+export function localizeProductLabel(label: string, locale: SupportedLocale): string {
+  return localizeMenuToken(label, locale, MENU_LABEL_TRANSLATIONS, menuLabelAliasMap);
+}
+
+export function localizeAllergenName(allergen: string, locale: SupportedLocale): string {
+  return localizeMenuToken(allergen, locale, MENU_ALLERGEN_TRANSLATIONS, menuAllergenAliasMap);
+}
+
 export function t(key: DictionaryKey, locale: SupportedLocale): string {
   return dictionary[key][locale] ?? dictionary[key][DEFAULT_LOCALE];
 }

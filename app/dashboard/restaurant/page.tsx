@@ -31,7 +31,6 @@ import {
   deleteFileByUrl,
   uploadBackground,
   uploadGalleryImage,
-  uploadLogo,
 } from "@/services/upload-service";
 
 interface GalleryView {
@@ -79,9 +78,7 @@ export default function RestaurantPage() {
     type: "success" | "error";
     message: string;
   } | null>(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBackground, setUploadingBackground] = useState(false);
-  const [removingLogo, setRemovingLogo] = useState(false);
   const [removingBackground, setRemovingBackground] = useState(false);
   const [showGalleryOnPublic, setShowGalleryOnPublic] = useState(false);
   const [savingGalleryVisibility, setSavingGalleryVisibility] = useState(false);
@@ -175,33 +172,6 @@ export default function RestaurantPage() {
     return ` [debug authUid=${firebaseUser?.uid ?? "null"} restaurantId=${restaurant?.id ?? "null"} profileRestaurantId=${userProfile?.restaurantId ?? "null"} ownerUserId=${restaurant?.ownerUserId ?? "null"}]`;
   };
 
-  const handleLogoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (!restaurant?.id || !event.target.files?.[0]) {
-      return;
-    }
-
-    setUploadingLogo(true);
-    setMediaFeedback(null);
-
-    try {
-      const result = await uploadLogo(restaurant.id, event.target.files[0]);
-      await updateRestaurantImageUrls(restaurant.id, { logoUrl: result.downloadURL });
-      await refreshSession();
-      setMediaFeedback({ type: "success", message: "Logo güncellendi." });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Logo yükleme başarısız.";
-      setMediaFeedback({
-        type: "error",
-        message: message.includes("Storage yetkisi reddedildi")
-          ? `${message}${buildStorageDebugSuffix()}`
-          : message,
-      });
-    } finally {
-      setUploadingLogo(false);
-      event.target.value = "";
-    }
-  };
-
   const handleBackgroundUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     if (!restaurant?.id || !event.target.files?.[0]) {
       return;
@@ -226,40 +196,6 @@ export default function RestaurantPage() {
     } finally {
       setUploadingBackground(false);
       event.target.value = "";
-    }
-  };
-
-  const handleDeleteLogo = async () => {
-    if (!restaurant?.id || !restaurant.logoUrl) {
-      return;
-    }
-
-    setRemovingLogo(true);
-    setMediaFeedback(null);
-
-    try {
-      try {
-        await deleteFileByUrl(restaurant.logoUrl);
-      } catch (error) {
-        const errorCode = (error as { code?: string } | null)?.code;
-        if (errorCode !== "storage/object-not-found") {
-          throw error;
-        }
-      }
-
-      await updateRestaurantImageUrls(restaurant.id, { logoUrl: "" });
-      await refreshSession();
-      setMediaFeedback({ type: "success", message: "Logo silindi." });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Logo silinemedi.";
-      setMediaFeedback({
-        type: "error",
-        message: message.includes("Storage yetkisi reddedildi")
-          ? `${message}${buildStorageDebugSuffix()}`
-          : message,
-      });
-    } finally {
-      setRemovingLogo(false);
     }
   };
 
@@ -548,39 +484,10 @@ export default function RestaurantPage() {
       </Card>
 
       <Card>
-        <h2 className="text-lg font-semibold text-slate-900">Logo ve Arka Plan</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Arka Plan</h2>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Logo Yükle</Label>
-            <FileInput accept="image/*" onChange={handleLogoUpload} />
-            {uploadingLogo ? <p className="text-sm text-slate-500">Logo yükleniyor...</p> : null}
-            {restaurant.logoUrl ? (
-              <>
-                <img
-                  src={restaurant.logoUrl}
-                  alt="Logo"
-                  className="h-24 w-24 rounded-xl border border-slate-200 object-cover"
-                />
-                <Button
-                  type="button"
-                  variant="danger"
-                  className="h-9"
-                  onClick={handleDeleteLogo}
-                  disabled={uploadingLogo || removingLogo}
-                >
-                  {removingLogo ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Spinner /> Siliniyor
-                    </span>
-                  ) : (
-                    "Logoyu Sil"
-                  )}
-                </Button>
-              </>
-            ) : null}
-          </div>
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label>Arka Plan Yükle</Label>
             <FileInput accept="image/*" onChange={handleBackgroundUpload} />
             {uploadingBackground ? <p className="text-sm text-slate-500">Arka plan yükleniyor...</p> : null}
