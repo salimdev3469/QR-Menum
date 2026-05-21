@@ -1,6 +1,6 @@
 "use client";
 
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, Suspense } from "react";
 
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -13,7 +13,9 @@ export function Providers({ children }: PropsWithChildren) {
     <LocaleProvider>
       <AuthProvider>
         <UiTranslatorProvider />
-        <NavigationLoadingHud />
+        <Suspense fallback={null}>
+          <NavigationLoadingHud />
+        </Suspense>
         {children}
       </AuthProvider>
       <CookieConsentBanner />
