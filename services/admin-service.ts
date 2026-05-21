@@ -12,7 +12,7 @@ import {
 
 import { firestoreDb } from "@/lib/firebase/client";
 import { normalizePlan } from "@/lib/plan";
-import { RestaurantPlan, StandOrder, SystemOrder, UserProfile } from "@/types";
+import { FirestoreDate, RestaurantPlan, StandOrder, SystemOrder, UserProfile } from "@/types";
 
 export interface AdminOverview {
   customerCount: number;
@@ -28,7 +28,9 @@ export interface AdminOverview {
 export interface AdminCustomerRecord {
   profile: UserProfile;
   restaurantName: string;
+  restaurantInitialPlan: RestaurantPlan;
   restaurantPlan: RestaurantPlan;
+  restaurantCreatedAt: FirestoreDate;
   restaurantIsActive: boolean;
   tableCount: number;
 }
@@ -141,23 +143,43 @@ export async function listAdminCustomers(): Promise<AdminCustomerRecord[]> {
   ]);
 
   const restaurantMap = restaurantsSnapshot.docs.reduce<
-    Record<string, { name: string; plan: RestaurantPlan; isActive: boolean; tableCount: number }>
+    Record<
+      string,
+      {
+        name: string;
+        initialPlan: RestaurantPlan;
+        plan: RestaurantPlan;
+        isActive: boolean;
+        tableCount: number;
+        createdAt: FirestoreDate;
+      }
+    >
   >((acc, docSnap) => {
     const raw = docSnap.data() as {
       name?: unknown;
+      initialPlan?: unknown;
       plan?: unknown;
       isActive?: unknown;
       tableCount?: unknown;
+      createdAt?: unknown;
     };
+    const rawCreatedAt = raw.createdAt;
 
     acc[docSnap.id] = {
       name: typeof raw.name === "string" ? raw.name : "",
+      initialPlan: normalizePlan(raw.initialPlan),
       plan: normalizePlan(raw.plan),
       isActive: raw.isActive !== false,
       tableCount:
         typeof raw.tableCount === "number" && Number.isFinite(raw.tableCount)
           ? Math.max(0, Math.floor(raw.tableCount))
           : 0,
+      createdAt:
+        typeof rawCreatedAt === "string"
+        || rawCreatedAt instanceof Date
+        || (typeof rawCreatedAt === "object" && rawCreatedAt !== null && "toDate" in rawCreatedAt)
+          ? (rawCreatedAt as FirestoreDate)
+          : null,
     };
 
     return acc;
@@ -172,7 +194,9 @@ export async function listAdminCustomers(): Promise<AdminCustomerRecord[]> {
       return {
         profile,
         restaurantName: restaurant?.name ?? "",
+        restaurantInitialPlan: restaurant?.initialPlan ?? "starter",
         restaurantPlan: restaurant?.plan ?? "starter",
+        restaurantCreatedAt: restaurant?.createdAt ?? null,
         restaurantIsActive: restaurant?.isActive ?? false,
         tableCount: restaurant?.tableCount ?? 0,
       } satisfies AdminCustomerRecord;

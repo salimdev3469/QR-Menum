@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPrice } from "@/lib/format";
+import { getDemoPublicMenuData } from "@/lib/demo-public-menu";
 import { getLocalizedText } from "@/lib/localized";
 import { isPromotionLive } from "@/lib/menu-features";
 import { canUseWaiterCalls } from "@/lib/plan";
@@ -92,6 +93,18 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
 
     (async () => {
       setLoading(true);
+
+      const demoMenuData = getDemoPublicMenuData(slug);
+      if (demoMenuData) {
+        setRestaurant(demoMenuData.restaurant);
+        setCategories(demoMenuData.categories);
+        setItems(demoMenuData.items);
+        setPromotions(demoMenuData.promotions.filter((item) => isPromotionLive(item)));
+        setGallery(demoMenuData.gallery);
+        setSelectedCategoryId("");
+        setLoading(false);
+        return;
+      }
 
       const restaurantDoc = await getRestaurantBySlug(slug);
 

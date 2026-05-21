@@ -91,6 +91,10 @@ service cloud.firestore {
           && resource.data.ownerUserId == request.auth.uid
           && request.resource.data.ownerUserId == resource.data.ownerUserId
           && request.resource.data.id == resource.data.id
+          && (
+            !("initialPlan" in resource.data)
+            || request.resource.data.initialPlan == resource.data.initialPlan
+          )
           && request.resource.data.plan == resource.data.plan
           && (
             hasGrowthPlan(restaurantId)
@@ -181,6 +185,12 @@ service cloud.firestore {
         && request.resource.data.tableCount > 0
         && request.resource.data.designType in ["preset", "upload"];
       allow read, update, delete: if isAdmin();
+    }
+
+    // Collection-group query for admin overview:
+    // db.collectionGroup("menuItems") requires an explicit group match in rules.
+    match /{path=**}/menuItems/{menuItemId} {
+      allow list: if isAdmin();
     }
   }
 }

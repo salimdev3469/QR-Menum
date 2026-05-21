@@ -4,10 +4,13 @@ import { headers } from "next/headers";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
 import { PricingGrid } from "@/components/marketing/pricing-grid";
+import { SessionAwarePrimaryCta } from "@/components/marketing/session-aware-primary-cta";
+import { StandShowcaseSection } from "@/components/marketing/stand-showcase-section";
 import { LoadingLink } from "@/components/ui/loading-link";
 import { SectionDivider } from "@/components/marketing/section-divider";
 import { FAQ_ITEMS, FEATURE_BLOCKS } from "@/lib/marketing-content";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
+import { generateQrDataUrl } from "@/services/qr-service";
 
 type HomeLocale = "tr" | "en";
 
@@ -20,7 +23,44 @@ interface QuickLink {
 interface StatItem {
   label: string;
   value: string;
+  hint: string;
+  showFlags?: boolean;
 }
+
+interface LanguageFlag {
+  id: string;
+  src: string;
+  alt: string;
+}
+
+function buildHomepagePreviewMenuConfig(): { targetUrl: string; displayUrl: string } {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const sampleSlug = "test-menu";
+  const fallbackHost = "qrmenum.app";
+
+  if (!appUrl) {
+    const targetUrl = `https://${fallbackHost}/menu/${sampleSlug}`;
+    return {
+      targetUrl,
+      displayUrl: targetUrl.replace(/^https?:\/\//, ""),
+    };
+  }
+
+  const normalizedAppUrl = appUrl.replace(/\/$/, "");
+  const targetUrl = `${normalizedAppUrl}/menu/${sampleSlug}`;
+
+  return {
+    targetUrl,
+    displayUrl: targetUrl.replace(/^https?:\/\//, ""),
+  };
+}
+
+const LANGUAGE_FLAGS: LanguageFlag[] = [
+  { id: "tr", src: "/flags/tr.png", alt: "Türkiye bayrağı" },
+  { id: "ru", src: "/flags/ru.png", alt: "Rusya bayrağı" },
+  { id: "us", src: "/flags/us.png", alt: "United States flag" },
+  { id: "sa", src: "/flags/sa.svg", alt: "Saudi Arabia flag" },
+];
 
 const SLOGAN_ITEMS: Record<HomeLocale, string[]> = {
   tr: [
@@ -56,15 +96,36 @@ const QUICK_LINKS: Record<HomeLocale, QuickLink[]> = {
 
 const STATS: Record<HomeLocale, StatItem[]> = {
   tr: [
-    { label: "Kurulum", value: "5 dk" },
-    { label: "Dil Desteği", value: "4 Dil" },
-    { label: "Yayın", value: "Anında" },
+    {
+      label: "Kurulum",
+      value: "5 dk",
+      hint: "İlk menünüzü dakikalar içinde yayına alın, QR kodunuzu indirip masalara hemen yerleştirin.",
+    },
+    { label: "Dil Desteği", value: "4 Dil", hint: "Türkçe, Rusça, İngilizce ve Arapça hazır.", showFlags: true },
+    {
+      label: "Yayın",
+      value: "Anında",
+      hint: "Fiyat ve içerik değişiklikleri menüye beklemeden yansır, müşteriler her zaman güncel listeyi görür.",
+    },
   ],
   en: [
-    { label: "Setup", value: "5 min" },
-    { label: "Language Support", value: "4 Languages" },
-    { label: "Publishing", value: "Instant" },
+    {
+      label: "Setup",
+      value: "5 min",
+      hint: "Publish your first menu within minutes, then download your QR code and place it on tables right away.",
+    },
+    { label: "Language Support", value: "4 Languages", hint: "Turkish, Russian, English, and Arabic ready.", showFlags: true },
+    {
+      label: "Publishing",
+      value: "Instant",
+      hint: "Price and content updates appear on the menu immediately, so guests always see the latest version.",
+    },
   ],
+};
+
+const STAND_FEATURE_PILLS: Record<HomeLocale, string[]> = {
+  tr: ["Hazır Tasarım Seçimi", "Kendi Tasarımını Yükle", "Panelde Anlık Takip"],
+  en: ["Preset Design Options", "Upload Your Own Design", "Real-time Panel Tracking"],
 };
 
 const FEATURE_BLOCKS_EN = [
@@ -114,7 +175,8 @@ const HOME_COPY = {
     previewTitle: "Canlı QR Önizleme",
     previewBadge: "Aktif",
     qrImageAlt: "QR kod önizleme",
-    previewFootnote: "Masadan okut, menüye anında geç.",
+    previewScanPrompt: "Hemen okut, menü nasıl görünecek gör.",
+    previewFootnote: "Bu test QR, örnek public menü görünümünü açar.",
     featuredSectionLabel: "Öne Çıkanlar",
     liveSectionLabel: "Canlı Deneyim",
     liveTitle: "QR okut, menünü aç, sipariş kararını hızlandır.",
@@ -144,7 +206,8 @@ const HOME_COPY = {
     previewTitle: "Live QR Preview",
     previewBadge: "Active",
     qrImageAlt: "QR code preview",
-    previewFootnote: "Scan at the table and open the menu instantly.",
+    previewScanPrompt: "Scan now and see how your public menu will look.",
+    previewFootnote: "This test QR opens a sample public menu view.",
     featuredSectionLabel: "Highlights",
     liveSectionLabel: "Live Experience",
     liveTitle: "Scan QR, open menu, speed up order decisions.",
@@ -194,13 +257,16 @@ export default async function HomePage() {
   const sloganItems = SLOGAN_ITEMS[locale];
   const quickLinks = QUICK_LINKS[locale];
   const stats = STATS[locale];
+  const standFeaturePills = STAND_FEATURE_PILLS[locale];
   const featureBlocks = locale === "tr" ? FEATURE_BLOCKS.slice(0, 3) : FEATURE_BLOCKS_EN;
   const faqItems = locale === "tr" ? FAQ_ITEMS.slice(0, 4) : FAQ_ITEMS_EN;
   const ctaLoadingText = locale === "tr" ? "Yonlendiriliyor..." : "Redirecting...";
+  const previewMenu = buildHomepagePreviewMenuConfig();
+  const previewQrDataUrl = await generateQrDataUrl(previewMenu.targetUrl).catch(() => "");
 
   return (
     <div className="relative overflow-hidden" lang={locale}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(16,185,129,0.18),transparent_34%),radial-gradient(circle_at_88%_16%,rgba(14,165,233,0.16),transparent_38%),radial-gradient(circle_at_50%_84%,rgba(249,115,22,0.12),transparent_36%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(16,185,129,0.18),transparent_34%),radial-gradient(circle_at_88%_16%,rgba(14,165,233,0.16),transparent_38%),radial-gradient(circle_at_50%_84%,rgba(249,115,22,0.12),transparent_36%)]" />
 
       <MarketingHeader locale={locale} />
 
@@ -217,13 +283,11 @@ export default async function HomePage() {
             <p className="max-w-xl text-sm leading-relaxed text-slate-600 md:text-base">{copy.heroDescription}</p>
 
             <div className="flex flex-wrap gap-3">
-              <LoadingLink
-                href="/register"
+              <SessionAwarePrimaryCta
+                locale={locale}
                 className="rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-[0_10px_26px_rgba(5,150,105,0.28)] transition hover:translate-y-[-1px] hover:bg-emerald-700"
                 loadingText={ctaLoadingText}
-              >
-                {copy.primaryCta}
-              </LoadingLink>
+              />
               <LoadingLink
                 href="/pricing"
                 className="rounded-2xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
@@ -233,11 +297,40 @@ export default async function HomePage() {
               </LoadingLink>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-3 sm:items-stretch">
               {stats.map((item) => (
-                <div key={item.label} className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
-                  <p className="mt-1 text-2xl font-extrabold text-slate-900">{item.value}</p>
+                <div
+                  key={item.label}
+                  className="flex h-full flex-col justify-between rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-sm"
+                >
+                  <div>
+                    <p className="text-xs font-semibold uppercase text-slate-500">{item.label}</p>
+                    <p className="mt-0.5 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-[2.25rem]">
+                      {item.value}
+                    </p>
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {item.showFlags ? (
+                      <div className="flex items-center gap-2">
+                        {LANGUAGE_FLAGS.map((flag) => (
+                          <span
+                            key={flag.id}
+                            className="overflow-hidden rounded-sm border border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.08)]"
+                          >
+                            <Image
+                              src={flag.src}
+                              alt={flag.alt}
+                              width={30}
+                              height={20}
+                              className="h-[20px] w-[30px] object-cover"
+                              priority={false}
+                            />
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    <p className="text-xs leading-snug text-slate-500">{item.hint}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -251,7 +344,7 @@ export default async function HomePage() {
               <div className="mb-5 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{copy.previewTitle}</p>
-                  <p className="text-sm font-bold text-slate-900">menu.qrmenum.app/novacafe</p>
+                  <p className="text-sm font-bold text-slate-900">{previewMenu.displayUrl}</p>
                 </div>
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
                   {copy.previewBadge}
@@ -260,15 +353,31 @@ export default async function HomePage() {
 
               <div className="relative mx-auto w-full max-w-[310px] rounded-3xl border border-slate-200 bg-slate-950 p-5">
                 <div className="relative overflow-hidden rounded-2xl bg-white p-4">
+                  <p className="mb-3 rounded-xl bg-emerald-50 px-3 py-2 text-center text-[11px] font-semibold leading-tight text-emerald-700">
+                    {copy.previewScanPrompt}
+                  </p>
                   <div className="pointer-events-none absolute left-4 right-4 top-[20%] z-10 h-[2px] bg-gradient-to-r from-transparent via-emerald-300 to-transparent qr-scan-line" />
-                  <Image
-                    src="/qr_empty.png"
-                    alt={copy.qrImageAlt}
-                    width={1272}
-                    height={1278}
-                    className="h-auto w-full"
-                    priority={false}
-                  />
+                  <a href={previewMenu.targetUrl} target="_blank" rel="noreferrer" className="block">
+                    {previewQrDataUrl ? (
+                      <Image
+                        src={previewQrDataUrl}
+                        alt={copy.qrImageAlt}
+                        width={1272}
+                        height={1278}
+                        className="h-auto w-full"
+                        unoptimized
+                      />
+                    ) : (
+                      <Image
+                        src="/qr_empty.png"
+                        alt={copy.qrImageAlt}
+                        width={1272}
+                        height={1278}
+                        className="h-auto w-full"
+                        priority={false}
+                      />
+                    )}
+                  </a>
                 </div>
 
                 <div className="mt-4 rounded-xl bg-slate-900/65 px-3 py-2 text-xs text-slate-200">
@@ -352,43 +461,16 @@ export default async function HomePage() {
         </section>
 
         <SectionDivider label={copy.standSectionLabel} />
-        <section className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-            <Image
-              src="/qr_stand.png"
-              alt={copy.standImageAlt}
-              width={1122}
-              height={1402}
-              className="h-full w-full object-cover"
-            />
-          </div>
-
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur md:p-8">
-            <h2 className="max-w-xl text-3xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-4xl">
-              {copy.standTitle}
-            </h2>
-            <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-600 md:text-lg">
-              {copy.standDescription}
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <LoadingLink
-                href="/stands"
-                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
-                loadingText={ctaLoadingText}
-              >
-                {copy.standPrimaryCta}
-              </LoadingLink>
-              <LoadingLink
-                href="/purchase"
-                className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
-                loadingText={ctaLoadingText}
-              >
-                {copy.standSecondaryCta}
-              </LoadingLink>
-            </div>
-          </div>
-        </section>
+        <StandShowcaseSection
+          sectionLabel={copy.standSectionLabel}
+          title={copy.standTitle}
+          description={copy.standDescription}
+          imageAlt={copy.standImageAlt}
+          primaryCta={copy.standPrimaryCta}
+          secondaryCta={copy.standSecondaryCta}
+          ctaLoadingText={ctaLoadingText}
+          featurePills={standFeaturePills}
+        />
 
         <SectionDivider label={copy.exploreSectionLabel} />
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

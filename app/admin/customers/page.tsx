@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { formatDate } from "@/lib/format";
+import { getStarterTrialStatus, STARTER_TRIAL_DAYS } from "@/lib/trial";
 import {
   AdminCustomerRecord,
   listAdminCustomers,
@@ -94,42 +95,61 @@ export default function AdminCustomersPage() {
                 <th className="px-3 py-2">Telefon</th>
                 <th className="px-3 py-2">Restoran</th>
                 <th className="px-3 py-2">Paket</th>
+                <th className="px-3 py-2">Deneme</th>
                 <th className="px-3 py-2">Restaurant ID</th>
                 <th className="px-3 py-2">Kayıt</th>
               </tr>
             </thead>
             <tbody>
-              {customers.map((customer) => (
-                <tr key={customer.profile.id} className="border-t border-slate-200">
-                  <td className="px-3 py-2 font-semibold text-slate-900">{customer.profile.name}</td>
-                  <td className="px-3 py-2 text-slate-700">{customer.profile.email}</td>
-                  <td className="px-3 py-2 text-slate-700">{customer.profile.phone}</td>
-                  <td className="px-3 py-2 text-slate-700">
-                    {customer.restaurantName || "-"}
-                    <p className="text-xs text-slate-500">
-                      {customer.tableCount} masa / {customer.restaurantIsActive ? "Aktif" : "Pasif"}
-                    </p>
-                  </td>
-                  <td className="px-3 py-2">
-                    <Select
-                      value={customer.restaurantPlan}
-                      disabled={updatingRestaurantId === customer.profile.restaurantId}
-                      onChange={(event) =>
-                        handlePlanChange(
-                          customer.profile.restaurantId,
-                          event.target.value as RestaurantPlan,
-                        )
-                      }
-                    >
-                      <option value="starter">Starter</option>
-                      <option value="growth">Growth</option>
-                      <option value="premium">Premium</option>
-                    </Select>
-                  </td>
-                  <td className="px-3 py-2 text-xs text-slate-500">{customer.profile.restaurantId}</td>
-                  <td className="px-3 py-2 text-slate-700">{formatDate(customer.profile.createdAt)}</td>
-                </tr>
-              ))}
+              {customers.map((customer) => {
+                const trialStatus = getStarterTrialStatus(
+                  customer.restaurantInitialPlan,
+                  customer.restaurantCreatedAt,
+                );
+
+                return (
+                  <tr key={customer.profile.id} className="border-t border-slate-200">
+                    <td className="px-3 py-2 font-semibold text-slate-900">{customer.profile.name}</td>
+                    <td className="px-3 py-2 text-slate-700">{customer.profile.email}</td>
+                    <td className="px-3 py-2 text-slate-700">{customer.profile.phone}</td>
+                    <td className="px-3 py-2 text-slate-700">
+                      {customer.restaurantName || "-"}
+                      <p className="text-xs text-slate-500">
+                        {customer.tableCount} masa / {customer.restaurantIsActive ? "Aktif" : "Pasif"}
+                      </p>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Select
+                        value={customer.restaurantPlan}
+                        disabled={updatingRestaurantId === customer.profile.restaurantId}
+                        onChange={(event) =>
+                          handlePlanChange(
+                            customer.profile.restaurantId,
+                            event.target.value as RestaurantPlan,
+                          )
+                        }
+                      >
+                        <option value="starter">Starter</option>
+                        <option value="growth">Growth</option>
+                        <option value="premium">Premium</option>
+                      </Select>
+                    </td>
+                    <td className="px-3 py-2 text-slate-700">
+                      {!trialStatus.isApplicable ? (
+                        "-"
+                      ) : trialStatus.remainingDays === null ? (
+                        "Hesaplanamadı"
+                      ) : trialStatus.isExpired ? (
+                        "Süre bitti (0 gün)"
+                      ) : (
+                        `${trialStatus.remainingDays}/${STARTER_TRIAL_DAYS} gün`
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-slate-500">{customer.profile.restaurantId}</td>
+                    <td className="px-3 py-2 text-slate-700">{formatDate(customer.profile.createdAt)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

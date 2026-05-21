@@ -87,7 +87,7 @@ export default function PrivacyPage() {
         ))}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white/90 p-6 text-sm leading-relaxed text-slate-700">
+      <section className="mt-4 rounded-2xl border border-slate-200 bg-white/90 p-6 text-sm leading-relaxed text-slate-700">
         <h2 className="text-base font-extrabold text-slate-900 md:text-lg">7) İletişim</h2>
         <p className="mt-3">
           Gizlilik talepleri ve kişisel veri başvuruları için bize şu kanallardan ulaşabilirsiniz:

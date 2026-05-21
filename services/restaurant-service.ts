@@ -76,6 +76,7 @@ function normalizeRestaurant(restaurantId: string, raw: Partial<Restaurant>): Re
     menuDesign: normalizeMenuDesign(raw.menuDesign),
     socialLinks: normalizeSocialLinks(raw.socialLinks),
     showGalleryOnPublic: raw.showGalleryOnPublic === true,
+    initialPlan: normalizePlan(raw.initialPlan),
     plan: normalizePlan(raw.plan),
     tableCount: normalizeTableCount(raw.tableCount),
   };
@@ -133,6 +134,7 @@ export async function createRestaurant(input: CreateRestaurantInput): Promise<Re
     menuDesign: normalizeMenuDesign(undefined),
     socialLinks: normalizeSocialLinks(undefined),
     showGalleryOnPublic: false,
+    initialPlan: "starter" as RestaurantPlan,
     plan: "starter" as RestaurantPlan,
     tableCount: 0,
   };

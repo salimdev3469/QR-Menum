@@ -62,6 +62,7 @@ export interface Restaurant {
   menuDesign: MenuDesign;
   socialLinks: SocialLinks;
   showGalleryOnPublic: boolean;
+  initialPlan: RestaurantPlan;
   plan: RestaurantPlan;
   tableCount: number;
 }

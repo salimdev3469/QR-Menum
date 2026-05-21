@@ -3,7 +3,8 @@
 import Link, { type LinkProps } from "next/link";
 import { type AnchorHTMLAttributes, type MouseEventHandler, useState } from "react";
 
-import { Spinner } from "@/components/ui/spinner";
+import { BrandLoadingIndicator } from "@/components/ui/brand-loading-indicator";
+import { NAVIGATION_LOADING_EVENT } from "@/components/ui/navigation-loading-hud";
 import { cn } from "@/lib/utils";
 
 type LoadingLinkProps = Omit<LinkProps, "onClick" | "onNavigate"> &
@@ -33,6 +34,10 @@ export function LoadingLink({
         }
 
         onClick?.(event);
+
+        if (!event.defaultPrevented) {
+          window.dispatchEvent(new Event(NAVIGATION_LOADING_EVENT));
+        }
       }}
       onNavigate={(event) => {
         if (isPending) {
@@ -40,6 +45,7 @@ export function LoadingLink({
           return;
         }
 
+        window.dispatchEvent(new Event(NAVIGATION_LOADING_EVENT));
         setIsPending(true);
       }}
       className={cn(
@@ -52,7 +58,7 @@ export function LoadingLink({
     >
       {isPending ? (
         <span className="inline-flex items-center gap-2">
-          <Spinner />
+          <BrandLoadingIndicator />
           {loadingText}
         </span>
       ) : (

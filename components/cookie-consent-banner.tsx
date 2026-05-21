@@ -72,6 +72,10 @@ export function CookieConsentBanner() {
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
           QR Menüm, temel site işlevleri için zorunlu çerezler kullanır. Analitik çerezleri isterseniz açabilir veya
           kapatabilirsiniz. Detaylar için{" "}
+          <Link href="/cookies" className="font-semibold text-emerald-700 hover:text-emerald-600">
+            Çerez Politikası
+          </Link>{" "}
+          ve{" "}
           <Link href="/privacy" className="font-semibold text-emerald-700 hover:text-emerald-600">
             Gizlilik Politikası
           </Link>{" "}

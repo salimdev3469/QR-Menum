@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { buildPublicMenuUrl } from "@/lib/url";
 import { formatDate } from "@/lib/format";
+import { getStarterTrialStatus, STARTER_TRIAL_DAYS } from "@/lib/trial";
 import { useAuth } from "@/hooks/use-auth";
 import { getDashboardStats } from "@/services/restaurant-service";
 import { DashboardStats } from "@/types";
@@ -58,6 +59,10 @@ export default function DashboardPage() {
     }
   }, [restaurant?.slug]);
 
+  const starterTrial = useMemo(() => {
+    return getStarterTrialStatus(restaurant?.initialPlan, restaurant?.createdAt ?? null);
+  }, [restaurant?.createdAt, restaurant?.initialPlan]);
+
   return (
     <div className="space-y-4">
       <Card>
@@ -108,6 +113,18 @@ export default function DashboardPage() {
           <p>
             <span className="font-semibold text-slate-700">Durum: </span>
             {restaurant?.isActive ? "Aktif" : "Pasif"}
+          </p>
+          <p>
+            <span className="font-semibold text-slate-700">Starter deneme: </span>
+            {!starterTrial.isApplicable ? (
+              "-"
+            ) : starterTrial.remainingDays === null ? (
+              "Hesaplanamadı"
+            ) : starterTrial.isExpired ? (
+              "Süre bitti (0 gün)"
+            ) : (
+              `${starterTrial.remainingDays}/${STARTER_TRIAL_DAYS} gün kaldı`
+            )}
           </p>
           <p className="break-all">
             <span className="font-semibold text-slate-700">Public link: </span>

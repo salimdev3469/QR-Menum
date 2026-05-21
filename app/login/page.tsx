@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/hooks/use-auth";
 import { toUserFriendlyError } from "@/lib/firebase-error";
 import { loginSchema } from "@/lib/validators";
 import { loginWithBusinessCode } from "@/services/auth-service";
@@ -22,6 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { loading, firebaseUser, userProfile } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [submitLocked, setSubmitLocked] = useState(false);
 
@@ -39,6 +41,15 @@ export default function LoginPage() {
   });
 
   const isPending = isSubmitting || submitLocked;
+  const isCheckingSession = loading || Boolean(firebaseUser);
+
+  useEffect(() => {
+    if (loading || !firebaseUser) {
+      return;
+    }
+
+    router.replace(userProfile?.role === "admin" ? "/admin" : "/dashboard");
+  }, [firebaseUser, loading, router, userProfile?.role]);
 
   const onSubmit = async (values: LoginFormValues) => {
     if (submitLocked) {
@@ -57,6 +68,17 @@ export default function LoginPage() {
       setSubmitLocked(false);
     }
   };
+
+  if (isCheckingSession) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm text-slate-700 shadow">
+          <Spinner />
+          {firebaseUser ? "Oturum bulundu, panele yönlendiriliyor..." : "Oturum doğrulanıyor..."}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-5 px-4 py-10">

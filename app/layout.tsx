@@ -12,6 +12,9 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "QR Menüm",
   description: "Restoran ve kafeler için QR menü yönetim uygulaması",
+  verification: {
+    google: "IpqraQCaDXpbNJzAJx0vO394CM1IDKVYR8x8tQGefi0",
+  },
 };
 
 export default function RootLayout({

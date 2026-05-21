@@ -104,7 +104,7 @@ export default function TermsPage() {
         ))}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white/90 p-6 text-sm leading-relaxed text-slate-700">
+      <section className="mt-4 rounded-2xl border border-slate-200 bg-white/90 p-6 text-sm leading-relaxed text-slate-700">
         <h2 className="text-base font-extrabold text-slate-900 md:text-lg">10) Güncellemeler ve Uyuşmazlık</h2>
         <p className="mt-3">
           AKA YAZILIM, yasal gereklilikler veya ürün değişiklikleri doğrultusunda bu koşulları güncelleyebilir. Güncel

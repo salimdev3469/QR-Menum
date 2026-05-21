@@ -92,3 +92,12 @@ npm run start
 - Görseller client-side sıkıştırılır (WebP, max 1200px, hedef < 500KB).
 - Ürün başına max 3 görsel, galeri max 10 görsel kuralı uygulanır.
 - Slug restoran adına göre otomatik güncellenir, çakışmada `-2`, `-3` eklenir.
+- Production ortamında `NEXT_PUBLIC_APP_URL` değeri mutlaka `https://` ile başlamalıdır.
+
+## Güvenlik Uyarısı (Chrome'da "Tehlikeli")
+Tarayıcıda domain yanında "Tehlikeli" etiketi görürseniz:
+
+1. `https://` üzerinden açtığınızdan emin olun.
+2. Render üzerinde mümkünse özel domain kullanın ve `onrender.com` alt domainini kapatın.
+3. Google Search Console > Security Issues bölümünden sorunu doğrulayın ve inceleme isteği gönderin.
+4. Yanlış pozitif şüpheniz varsa Safe Browsing yanlış uyarı formundan bildirim yapın.

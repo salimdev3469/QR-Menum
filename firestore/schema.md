@@ -27,6 +27,11 @@
 - `addressI18n: { tr, en, ru, ar }`
 - `menuDesign: { primaryColor, accentColor, textColor, backgroundStyle }`
 - `socialLinks: { instagram, facebook, x, youtube, tiktok }`
+- `initialPlan: "starter" | "growth" | "premium"` (kayıt anındaki ilk paket)
+- `plan: "starter" | "growth" | "premium"` (güncel paket)
+
+Starter deneme takibi:
+- Başlangıç paketi `starter` olan restoranlarda deneme süresi `createdAt` baz alınarak 14 gün olarak hesaplanır.
 
 ## `restaurants/{restaurantId}/gallery/{imageId}`
 - `id: string`
