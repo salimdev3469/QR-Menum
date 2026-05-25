@@ -7,6 +7,7 @@ import { Alert } from "@/components/ui/alert";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import { buildFloorTableModules, getFloorByTableNumber } from "@/lib/floor";
 import { formatPrice } from "@/lib/format";
 import { getDemoPublicMenuData } from "@/lib/demo-public-menu";
 import { getLocalizedText } from "@/lib/localized";
@@ -18,6 +19,7 @@ import { listPublicCategories } from "@/services/category-service";
 import { listPublicMenuItemsByRestaurant } from "@/services/menu-service";
 import { listPublicPromotionsByRestaurant } from "@/services/promotion-service";
 import { getRestaurantBySlug, listGallery } from "@/services/restaurant-service";
+import { createTableOrder } from "@/services/table-order-service";
 import { createWaiterCall } from "@/services/waiter-call-service";
 import { Category, MenuItem, Promotion, Restaurant, SupportedLocale } from "@/types";
 
@@ -68,6 +70,24 @@ function waiterCallSuccessMessage(locale: SupportedLocale, tableNumber: number):
   return templates[locale](tableNumber);
 }
 
+function tableOrderSuccessMessage(locale: SupportedLocale, tableNumber: number): string {
+  const templates: Record<SupportedLocale, (table: number) => string> = {
+    tr: (table) => `Masa ${table} için sipariş mutfağa iletildi.`,
+    en: (table) => `Order sent for table ${table}.`,
+    ru: (table) => `Заказ отправлен для стола ${table}.`,
+    ar: (table) => `تم إرسال الطلب للطاولة ${table}.`,
+  };
+
+  return templates[locale](tableNumber);
+}
+
+interface SelectedOrderItem {
+  menuItem: MenuItem;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 export default function PublicMenuPage({ params }: MenuPageProps) {
   const { locale } = useLocale();
   const searchParams = useSearchParams();
@@ -78,9 +98,17 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [gallery, setGallery] = useState<GalleryItemView[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedFloorNumber, setSelectedFloorNumber] = useState<number>(1);
   const [selectedTableNumber, setSelectedTableNumber] = useState<number>(1);
   const [waiterCalling, setWaiterCalling] = useState(false);
   const [waiterCallFeedback, setWaiterCallFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
+  const [orderNote, setOrderNote] = useState("");
+  const [orderSubmitting, setOrderSubmitting] = useState(false);
+  const [orderFeedback, setOrderFeedback] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
@@ -144,6 +172,17 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
   }, [slug]);
 
   const tableQueryParam = searchParams.get("table");
+  const floorModules = useMemo(() => {
+    if (!restaurant) {
+      return [];
+    }
+
+    return buildFloorTableModules(
+      restaurant.tableCount,
+      restaurant.floorCount,
+      restaurant.floorTableCounts,
+    );
+  }, [restaurant]);
 
   useEffect(() => {
     if (!restaurant) {
@@ -151,23 +190,60 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     }
 
     const tableCount = restaurant.tableCount ?? 0;
+    const availableFloorModules = floorModules.length > 0
+      ? floorModules
+      : buildFloorTableModules(tableCount, restaurant.floorCount, restaurant.floorTableCounts);
     if (tableCount <= 0) {
+      setSelectedFloorNumber(1);
       setSelectedTableNumber(1);
       return;
     }
 
     const parsedQueryTable = Number(tableQueryParam);
-    if (
+    const nextTableNumber =
       Number.isInteger(parsedQueryTable)
       && parsedQueryTable >= 1
       && parsedQueryTable <= tableCount
-    ) {
-      setSelectedTableNumber(parsedQueryTable);
+        ? parsedQueryTable
+        : 1;
+    const nextFloorNumber = getFloorByTableNumber(nextTableNumber, availableFloorModules);
+
+    setSelectedFloorNumber(nextFloorNumber);
+    setSelectedTableNumber(nextTableNumber);
+  }, [floorModules, restaurant, tableQueryParam]);
+
+  useEffect(() => {
+    if (floorModules.length === 0) {
+      setSelectedFloorNumber(1);
+      setSelectedTableNumber(1);
       return;
     }
 
-    setSelectedTableNumber(1);
-  }, [restaurant, tableQueryParam]);
+    const activeFloor =
+      floorModules.find((module) => module.floorNumber === selectedFloorNumber)
+      ?? floorModules[0];
+    const activeFloorTableNumbers = activeFloor.tableNumbers;
+
+    if (selectedFloorNumber !== activeFloor.floorNumber) {
+      setSelectedFloorNumber(activeFloor.floorNumber);
+      return;
+    }
+
+    if (activeFloorTableNumbers.length === 0) {
+      if (selectedTableNumber !== 1) {
+        setSelectedTableNumber(1);
+      }
+      return;
+    }
+
+    if (!activeFloorTableNumbers.includes(selectedTableNumber)) {
+      setSelectedTableNumber(activeFloorTableNumbers[0]);
+    }
+  }, [floorModules, selectedFloorNumber, selectedTableNumber]);
+
+  const selectedFloorModule = useMemo(() => {
+    return floorModules.find((module) => module.floorNumber === selectedFloorNumber) ?? null;
+  }, [floorModules, selectedFloorNumber]);
 
   const filteredItems = useMemo(() => {
     if (!selectedCategoryId) {
@@ -228,7 +304,60 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     });
   }, [filteredItems, promotions, selectedCategoryId]);
 
+  const selectedOrderItems = useMemo(() => {
+    const selected: SelectedOrderItem[] = [];
+
+    Object.entries(orderQuantities).forEach(([itemId, quantity]) => {
+      if (quantity < 1) {
+        return;
+      }
+
+      const menuItem = items.find((candidate) => candidate.id === itemId);
+      if (!menuItem || menuItem.isAvailable === false) {
+        return;
+      }
+
+      const discountPrice =
+        menuItem.isDiscounted && menuItem.discountPrice !== null ? menuItem.discountPrice : null;
+      const unitPrice = discountPrice ?? menuItem.price;
+
+      selected.push({
+        menuItem,
+        quantity,
+        unitPrice,
+        totalPrice: unitPrice * quantity,
+      });
+    });
+
+    return selected;
+  }, [items, orderQuantities]);
+
+  const selectedOrderItemCount = useMemo(() => {
+    return selectedOrderItems.reduce((acc, item) => acc + item.quantity, 0);
+  }, [selectedOrderItems]);
+
+  const selectedOrderTotalAmount = useMemo(() => {
+    return selectedOrderItems.reduce((acc, item) => acc + item.totalPrice, 0);
+  }, [selectedOrderItems]);
+
   const isWaiterFeatureEnabled = canUseWaiterCalls(restaurant?.plan);
+
+  const handleOrderQuantityChange = (itemId: string, nextQuantity: number) => {
+    setOrderFeedback(null);
+    setOrderQuantities((prev) => {
+      const normalized = Number.isFinite(nextQuantity) ? Math.max(0, Math.floor(nextQuantity)) : 0;
+      if (normalized === 0) {
+        const clone = { ...prev };
+        delete clone[itemId];
+        return clone;
+      }
+
+      return {
+        ...prev,
+        [itemId]: normalized,
+      };
+    });
+  };
 
   const handleWaiterCall = async () => {
     if (!restaurant?.id || !isWaiterFeatureEnabled) {
@@ -259,6 +388,59 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
       });
     } finally {
       setWaiterCalling(false);
+    }
+  };
+
+  const handleCreateTableOrder = async () => {
+    if (!restaurant?.id || !isWaiterFeatureEnabled) {
+      return;
+    }
+
+    if (selectedTableNumber < 1 || selectedTableNumber > restaurant.tableCount) {
+      setOrderFeedback({
+        type: "error",
+        message: t("invalidTableSelection", locale),
+      });
+      return;
+    }
+
+    if (selectedOrderItems.length < 1) {
+      setOrderFeedback({
+        type: "error",
+        message: t("selectAtLeastOneMenuItem", locale),
+      });
+      return;
+    }
+
+    setOrderSubmitting(true);
+    setOrderFeedback(null);
+
+    try {
+      await createTableOrder({
+        restaurantId: restaurant.id,
+        tableNumber: selectedTableNumber,
+        floorNumber: selectedFloorNumber,
+        note: orderNote,
+        items: selectedOrderItems.map((item) => ({
+          menuItemId: item.menuItem.id,
+          name: item.menuItem.name,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+        })),
+      });
+      setOrderFeedback({
+        type: "success",
+        message: tableOrderSuccessMessage(locale, selectedTableNumber),
+      });
+      setOrderQuantities({});
+      setOrderNote("");
+    } catch (error) {
+      setOrderFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : t("tableOrderFailed", locale),
+      });
+    } finally {
+      setOrderSubmitting(false);
     }
   };
 
@@ -309,6 +491,7 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     { key: "youtube", label: "YouTube", url: normalizeExternalUrl(restaurant.socialLinks.youtube) },
     { key: "tiktok", label: "TikTok", url: normalizeExternalUrl(restaurant.socialLinks.tiktok) },
   ].filter((item) => item.url.length > 0);
+  const selectableTableNumbers = selectedFloorModule?.tableNumbers ?? [];
   const renderMenuItemCard = (item: MenuItem) => {
     const localizedName = getLocalizedText(item.nameI18n, locale, item.name);
     const localizedDescription = getLocalizedText(
@@ -322,6 +505,8 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
     const availableVariations = (item.variations ?? []).filter((variation) => variation.isAvailable);
     const localizedLabels = (item.labels ?? []).map((label) => localizeProductLabel(label, locale));
     const localizedAllergens = (item.allergens ?? []).map((allergen) => localizeAllergenName(allergen, locale));
+    const selectedQuantity = orderQuantities[item.id] ?? 0;
+    const isOrderable = item.isAvailable && isWaiterFeatureEnabled && restaurant.tableCount > 0;
 
     return (
       <article
@@ -429,6 +614,42 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
                 {t("allergen", locale)}: {localizedAllergens.join(", ")}
               </p>
             ) : null}
+
+            {isOrderable ? (
+              <div className="mt-3 flex items-center justify-end">
+                {selectedQuantity > 0 ? (
+                  <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1">
+                    <button
+                      type="button"
+                      className="h-8 w-8 rounded-full bg-slate-100 text-base font-bold text-slate-800 transition hover:bg-slate-200"
+                      onClick={() => handleOrderQuantityChange(item.id, selectedQuantity - 1)}
+                      aria-label={`${localizedName} miktar azalt`}
+                    >
+                      -
+                    </button>
+                    <span className="min-w-9 text-center text-sm font-semibold text-slate-800">{selectedQuantity}</span>
+                    <button
+                      type="button"
+                      className="h-8 w-8 rounded-full text-base font-bold text-white transition"
+                      style={{ backgroundColor: design.primaryColor }}
+                      onClick={() => handleOrderQuantityChange(item.id, selectedQuantity + 1)}
+                      aria-label={`${localizedName} miktar artır`}
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="rounded-xl px-3 py-2 text-xs font-bold text-white shadow transition hover:opacity-90"
+                    style={{ backgroundColor: design.primaryColor }}
+                    onClick={() => handleOrderQuantityChange(item.id, 1)}
+                  >
+                    {t("addToOrder", locale)}
+                  </button>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       </article>
@@ -489,49 +710,103 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
           <div className="space-y-3">
             {isWaiterFeatureEnabled ? (
               <div className="rounded-3xl border p-4 shadow-xl shadow-slate-900/10 backdrop-blur-sm" style={sectionCardStyle}>
-                <div className="flex flex-wrap items-end gap-3">
-                  <div className="min-w-[11rem] flex-1">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: subtitleColor }}>
-                      {t("serviceSection", locale)}
-                    </p>
-                    <h3 className="mt-1 text-lg font-extrabold" style={{ color: textColor }}>
-                      {t("callWaiter", locale)}
-                    </h3>
-                    <p className="mt-1 text-sm" style={{ color: subtitleColor }}>
-                      {t("callWaiterDescription", locale)}
-                    </p>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div className="min-w-[11rem] flex-1">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: subtitleColor }}>
+                        {t("serviceSection", locale)}
+                      </p>
+                      <h3 className="mt-1 text-lg font-extrabold" style={{ color: textColor }}>
+                        {t("callWaiter", locale)}
+                      </h3>
+                      <p className="mt-1 text-sm" style={{ color: subtitleColor }}>
+                        {t("callWaiterDescription", locale)}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {floorModules.filter((module) => module.tableCount > 0).length > 1 ? (
+                        <select
+                          value={selectedFloorNumber}
+                          onChange={(event) => setSelectedFloorNumber(Number(event.target.value))}
+                          className="h-11 rounded-xl border bg-white px-3 text-sm font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none"
+                          style={{ borderColor: isDarkTheme ? "#334155" : "#d1d5db" }}
+                          disabled={(restaurant.tableCount ?? 0) < 1 || waiterCalling || orderSubmitting}
+                        >
+                          {floorModules
+                            .filter((module) => module.tableCount > 0)
+                            .map((module) => (
+                            <option key={module.floorNumber} value={module.floorNumber}>
+                              {t("floor", locale)} {module.floorNumber}
+                            </option>
+                            ))}
+                        </select>
+                      ) : null}
+                      <select
+                        value={selectedTableNumber}
+                        onChange={(event) => setSelectedTableNumber(Number(event.target.value))}
+                        className="h-11 rounded-xl border bg-white px-3 text-sm font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none"
+                        style={{ borderColor: isDarkTheme ? "#334155" : "#d1d5db" }}
+                        disabled={(restaurant.tableCount ?? 0) < 1 || waiterCalling || orderSubmitting}
+                      >
+                        {selectableTableNumbers.length > 0 ? (
+                          selectableTableNumbers.map((tableNumber) => (
+                            <option key={tableNumber} value={tableNumber}>
+                              {t("table", locale)} {tableNumber}
+                            </option>
+                          ))
+                        ) : (
+                          <option value={1}>{t("noData", locale)}</option>
+                        )}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleWaiterCall}
+                        disabled={waiterCalling || restaurant.tableCount < 1}
+                        className="inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-bold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60"
+                        style={{ backgroundColor: design.accentColor }}
+                      >
+                        {waiterCalling ? (
+                          <span className="inline-flex items-center gap-2">
+                            <Spinner /> {t("sending", locale)}
+                          </span>
+                        ) : (
+                          t("callWaiter", locale)
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <select
-                      value={selectedTableNumber}
-                      onChange={(event) => setSelectedTableNumber(Number(event.target.value))}
-                      className="h-11 rounded-xl border bg-white px-3 text-sm font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none"
-                      style={{ borderColor: isDarkTheme ? "#334155" : "#d1d5db" }}
-                      disabled={(restaurant.tableCount ?? 0) < 1 || waiterCalling}
-                    >
-                      {Array.from({ length: Math.max(restaurant.tableCount, 0) }, (_, index) => index + 1).map(
-                        (tableNumber) => (
-                          <option key={tableNumber} value={tableNumber}>
-                            {t("table", locale)} {tableNumber}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleWaiterCall}
-                      disabled={waiterCalling || restaurant.tableCount < 1}
-                      className="inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-bold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60"
-                      style={{ backgroundColor: design.accentColor }}
-                    >
-                      {waiterCalling ? (
-                        <span className="inline-flex items-center gap-2">
-                          <Spinner /> {t("sending", locale)}
-                        </span>
-                      ) : (
-                        t("callWaiter", locale)
-                      )}
-                    </button>
+
+                  <div className="rounded-xl border border-slate-200 bg-white/70 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-slate-800">{t("openTableOrder", locale)}</p>
+                      <p className="text-xs font-medium text-slate-600">
+                        {selectedOrderItemCount} {t("item", locale)} · {formatPrice(selectedOrderTotalAmount)}
+                      </p>
+                    </div>
+                    <textarea
+                      value={orderNote}
+                      onChange={(event) => setOrderNote(event.target.value)}
+                      placeholder={t("tableOrderNotePlaceholder", locale)}
+                      className="mt-2 h-20 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-emerald-500"
+                      disabled={orderSubmitting || restaurant.tableCount < 1}
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleCreateTableOrder}
+                        disabled={orderSubmitting || selectedOrderItemCount < 1 || restaurant.tableCount < 1}
+                        className="inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-bold text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60"
+                        style={{ backgroundColor: design.primaryColor }}
+                      >
+                        {orderSubmitting ? (
+                          <span className="inline-flex items-center gap-2">
+                            <Spinner /> {t("sending", locale)}
+                          </span>
+                        ) : (
+                          t("openTableOrder", locale)
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -544,6 +819,12 @@ export default function PublicMenuPage({ params }: MenuPageProps) {
                 {waiterCallFeedback ? (
                   <div className="mt-3">
                     <Alert variant={waiterCallFeedback.type}>{waiterCallFeedback.message}</Alert>
+                  </div>
+                ) : null}
+
+                {orderFeedback ? (
+                  <div className="mt-3">
+                    <Alert variant={orderFeedback.type}>{orderFeedback.message}</Alert>
                   </div>
                 ) : null}
               </div>

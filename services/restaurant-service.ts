@@ -14,6 +14,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 
+import { normalizeFloorCount, normalizeFloorTableCounts, sumFloorTableCounts } from "@/lib/floor";
 import { emptyLocalizedMap } from "@/lib/localized";
 import { normalizePlan } from "@/lib/plan";
 import { normalizeMenuDesign, normalizeSocialLinks } from "@/lib/menu-features";
@@ -45,6 +46,8 @@ interface UpdateRestaurantInput {
   address: string;
   isActive: boolean;
   tableCount: number;
+  floorCount: number;
+  floorTableCounts: number[];
   menuDesign: MenuDesign;
   socialLinks: SocialLinks;
 }
@@ -58,6 +61,16 @@ function normalizeTableCount(value: unknown): number {
 }
 
 function normalizeRestaurant(restaurantId: string, raw: Partial<Restaurant>): Restaurant {
+  const floorCount = normalizeFloorCount(
+    typeof raw.floorCount === "number" ? raw.floorCount : 1,
+  );
+  const normalizedFloorTableCounts = normalizeFloorTableCounts(
+    Array.isArray(raw.floorTableCounts) ? raw.floorTableCounts : null,
+    floorCount,
+    normalizeTableCount(raw.tableCount),
+  );
+  const normalizedTableCount = sumFloorTableCounts(normalizedFloorTableCounts);
+
   return {
     id: restaurantId,
     ownerUserId: raw.ownerUserId ?? "",
@@ -77,7 +90,9 @@ function normalizeRestaurant(restaurantId: string, raw: Partial<Restaurant>): Re
     showGalleryOnPublic: raw.showGalleryOnPublic === true,
     initialPlan: normalizePlan(raw.initialPlan),
     plan: normalizePlan(raw.plan),
-    tableCount: normalizeTableCount(raw.tableCount),
+    tableCount: normalizedTableCount,
+    floorCount,
+    floorTableCounts: normalizedFloorTableCounts,
   };
 }
 
@@ -135,6 +150,8 @@ export async function createRestaurant(input: CreateRestaurantInput): Promise<Re
     initialPlan: "starter" as RestaurantPlan,
     plan: "starter" as RestaurantPlan,
     tableCount: 0,
+    floorCount: 1,
+    floorTableCounts: [0],
   };
 
   await setDoc(restaurantRef, restaurantData);
@@ -198,6 +215,13 @@ export async function updateRestaurant(
     name: input.name,
     address: input.address,
   });
+  const normalizedFloorCount = normalizeFloorCount(input.floorCount);
+  const normalizedFloorTableCounts = normalizeFloorTableCounts(
+    input.floorTableCounts,
+    normalizedFloorCount,
+    normalizeTableCount(input.tableCount),
+  );
+  const normalizedTableCount = sumFloorTableCounts(normalizedFloorTableCounts);
 
   await updateDoc(restaurantRef, {
     name: input.name,
@@ -211,7 +235,9 @@ export async function updateRestaurant(
     addressI18n: translations.address ?? currentData.addressI18n,
     menuDesign: normalizeMenuDesign(input.menuDesign),
     socialLinks: normalizeSocialLinks(input.socialLinks),
-    tableCount: normalizeTableCount(input.tableCount),
+    tableCount: normalizedTableCount,
+    floorCount: normalizedFloorCount,
+    floorTableCounts: normalizedFloorTableCounts,
   });
 }
 

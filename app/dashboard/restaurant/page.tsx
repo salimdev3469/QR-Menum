@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { IMAGE_LIMITS } from "@/lib/constants";
+import { buildFloorTableModules } from "@/lib/floor";
 import { canUseBrandDesign, getPlanLabel } from "@/lib/plan";
 import { restaurantSchema } from "@/lib/validators";
 import { useAuth } from "@/hooks/use-auth";
@@ -49,6 +50,8 @@ const defaultValues: RestaurantFormValues = {
   isActive: true,
   plan: "starter",
   tableCount: 0,
+  floorCount: 1,
+  floorTableCounts: [0],
   menuDesign: {
     primaryColor: "#059669",
     accentColor: "#0ea5e9",
@@ -90,6 +93,7 @@ export default function RestaurantPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
     watch,
   } = useForm<RestaurantFormValues>({
     resolver: zodResolver(restaurantSchema),
@@ -109,6 +113,8 @@ export default function RestaurantPage() {
       isActive: restaurant.isActive,
       plan: restaurant.plan,
       tableCount: restaurant.tableCount,
+      floorCount: restaurant.floorCount,
+      floorTableCounts: restaurant.floorTableCounts,
       menuDesign: restaurant.menuDesign,
       socialLinks: restaurant.socialLinks,
     });
@@ -118,6 +124,59 @@ export default function RestaurantPage() {
     return gallery.length < IMAGE_LIMITS.MAX_GALLERY_IMAGES;
   }, [gallery.length]);
   const isBrandDesignEnabled = canUseBrandDesign(restaurant?.plan);
+  const watchedTableCount = watch("tableCount") || 0;
+  const watchedFloorCount = watch("floorCount") || 1;
+  const watchedFloorTableCountsRaw = watch("floorTableCounts");
+  const watchedFloorTableCounts = useMemo(
+    () => (Array.isArray(watchedFloorTableCountsRaw) ? watchedFloorTableCountsRaw : []),
+    [watchedFloorTableCountsRaw],
+  );
+  const normalizedFloorCount = Math.max(1, Math.min(20, Math.floor(watchedFloorCount)));
+
+  useEffect(() => {
+    const normalizedCounts = Array.from({ length: normalizedFloorCount }, (_, index) => {
+      const rawCount = watchedFloorTableCounts[index];
+      if (typeof rawCount !== "number" || !Number.isFinite(rawCount)) {
+        return 0;
+      }
+
+      return Math.max(0, Math.min(500, Math.floor(rawCount)));
+    });
+
+    const requiresFloorCountNormalization = watchedFloorCount !== normalizedFloorCount;
+    const requiresFloorTableNormalization = normalizedCounts.some(
+      (count, index) => count !== (watchedFloorTableCounts[index] ?? 0),
+    ) || watchedFloorTableCounts.length !== normalizedCounts.length;
+
+    if (requiresFloorCountNormalization) {
+      setValue("floorCount", normalizedFloorCount, { shouldValidate: true });
+    }
+
+    if (requiresFloorTableNormalization) {
+      setValue("floorTableCounts", normalizedCounts, { shouldValidate: true });
+    }
+
+    const totalTables = normalizedCounts.reduce((sum, count) => sum + count, 0);
+    if (watchedTableCount !== totalTables) {
+      setValue("tableCount", totalTables, { shouldValidate: true });
+    }
+  }, [
+    normalizedFloorCount,
+    setValue,
+    watchedFloorCount,
+    watchedFloorTableCounts,
+    watchedTableCount,
+  ]);
+
+  const totalTableCount = useMemo(
+    () => watchedFloorTableCounts.reduce((sum, count) => sum + (Number.isFinite(count) ? count : 0), 0),
+    [watchedFloorTableCounts],
+  );
+
+  const floorModules = useMemo(
+    () => buildFloorTableModules(totalTableCount, normalizedFloorCount, watchedFloorTableCounts),
+    [normalizedFloorCount, totalTableCount, watchedFloorTableCounts],
+  );
 
   useEffect(() => {
     if (!restaurant?.id) {
@@ -362,10 +421,18 @@ export default function RestaurantPage() {
             </p>
           </div>
           <div>
-            <Label>Masa Sayısı</Label>
-            <Input type="number" min={0} max={500} {...register("tableCount", { valueAsNumber: true })} />
+            <Label>Masa Sayısı (Toplam)</Label>
+            <Input type="number" min={0} max={500} {...register("tableCount", { valueAsNumber: true })} readOnly />
+            <p className="mt-1 text-xs text-slate-500">Toplam, kat dağılımına göre otomatik hesaplanır.</p>
             {errors.tableCount ? (
               <p className="mt-1 text-xs text-rose-600">{errors.tableCount.message}</p>
+            ) : null}
+          </div>
+          <div>
+            <Label>Kat Sayısı</Label>
+            <Input type="number" min={1} max={20} {...register("floorCount", { valueAsNumber: true })} />
+            {errors.floorCount ? (
+              <p className="mt-1 text-xs text-rose-600">{errors.floorCount.message}</p>
             ) : null}
           </div>
           <div className="flex items-end gap-2 pb-1">
@@ -378,6 +445,44 @@ export default function RestaurantPage() {
             <Label>Adres</Label>
             <Textarea {...register("address")} />
             {errors.address ? <p className="mt-1 text-xs text-rose-600">{errors.address.message}</p> : null}
+          </div>
+
+          <div className="md:col-span-2 rounded-xl border border-slate-200 p-3">
+            <h2 className="text-sm font-semibold text-slate-900">Kat Modülü</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Her kat için masa adedini ayrı belirleyin.
+            </p>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {Array.from({ length: normalizedFloorCount }, (_, index) => (
+                <div key={`floor-count-${index + 1}`}>
+                  <Label>Kat {index + 1} Masa Adedi</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={500}
+                    {...register(`floorTableCounts.${index}` as const, { valueAsNumber: true })}
+                  />
+                </div>
+              ))}
+            </div>
+            {errors.floorTableCounts ? (
+              <p className="mt-2 text-xs text-rose-600">
+                {errors.floorTableCounts.message}
+              </p>
+            ) : null}
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {floorModules.map((module) => (
+                <div key={module.floorNumber} className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                  <p className="text-xs font-semibold text-slate-600">Kat {module.floorNumber}</p>
+                  <p className="mt-1 text-sm text-slate-800">
+                    {module.tableCount > 0
+                      ? `Masa ${module.startTableNumber}-${module.endTableNumber}`
+                      : "Masa yok"}
+                  </p>
+                  <p className="text-xs text-slate-500">Toplam: {module.tableCount}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="md:col-span-2 rounded-xl border border-slate-200 p-3">

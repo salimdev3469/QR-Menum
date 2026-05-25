@@ -26,28 +26,50 @@ export const loginSchema = z.object({
   businessCode: z.string().min(4, "İşletme kodu en az 4 karakter olmalı.").max(20),
 });
 
-export const restaurantSchema = z.object({
-  name: z.string().min(2),
-  managerName: z.string().min(2),
-  phone: z.string().min(7),
-  address: z.string().min(5),
-  isActive: z.boolean(),
-  plan: z.enum(["starter", "growth", "premium"]),
-  tableCount: z.number().int().min(0).max(500),
-  menuDesign: z.object({
-    primaryColor: z.string().regex(hexColorRegex, "Renk #RRGGBB formatında olmalı."),
-    accentColor: z.string().regex(hexColorRegex, "Renk #RRGGBB formatında olmalı."),
-    textColor: z.string().regex(hexColorRegex, "Renk #RRGGBB formatında olmalı."),
-    backgroundStyle: z.enum(["dark", "light"]),
-  }),
-  socialLinks: z.object({
-    instagram: z.string().trim().max(200),
-    facebook: z.string().trim().max(200),
-    x: z.string().trim().max(200),
-    youtube: z.string().trim().max(200),
-    tiktok: z.string().trim().max(200),
-  }),
-});
+export const restaurantSchema = z
+  .object({
+    name: z.string().min(2),
+    managerName: z.string().min(2),
+    phone: z.string().min(7),
+    address: z.string().min(5),
+    isActive: z.boolean(),
+    plan: z.enum(["starter", "growth", "premium"]),
+    tableCount: z.number().int().min(0).max(500),
+    floorCount: z.number().int().min(1).max(20),
+    floorTableCounts: z.array(z.number().int().min(0).max(500)).min(1).max(20),
+    menuDesign: z.object({
+      primaryColor: z.string().regex(hexColorRegex, "Renk #RRGGBB formatında olmalı."),
+      accentColor: z.string().regex(hexColorRegex, "Renk #RRGGBB formatında olmalı."),
+      textColor: z.string().regex(hexColorRegex, "Renk #RRGGBB formatında olmalı."),
+      backgroundStyle: z.enum(["dark", "light"]),
+    }),
+    socialLinks: z.object({
+      instagram: z.string().trim().max(200),
+      facebook: z.string().trim().max(200),
+      x: z.string().trim().max(200),
+      youtube: z.string().trim().max(200),
+      tiktok: z.string().trim().max(200),
+    }),
+  })
+  .superRefine((values, context) => {
+    if (values.floorTableCounts.length !== values.floorCount) {
+      context.addIssue({
+        code: "custom",
+        path: ["floorTableCounts"],
+        message: "Kat dağılımı kat sayısı ile eşleşmeli.",
+      });
+    }
+
+    const total = values.floorTableCounts.reduce((sum, count) => sum + count, 0);
+
+    if (total !== values.tableCount) {
+      context.addIssue({
+        code: "custom",
+        path: ["tableCount"],
+        message: "Toplam masa sayısı kat dağılımı ile eşleşmeli.",
+      });
+    }
+  });
 
 export const categorySchema = z.object({
   name: z.string().min(2),

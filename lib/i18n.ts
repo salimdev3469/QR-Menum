@@ -194,6 +194,18 @@ const dictionary = {
     ru: "Стол",
     ar: "طاولة",
   },
+  floor: {
+    tr: "Kat",
+    en: "Floor",
+    ru: "Этаж",
+    ar: "الطابق",
+  },
+  item: {
+    tr: "ürün",
+    en: "item",
+    ru: "позиция",
+    ar: "عنصر",
+  },
   sending: {
     tr: "Gönderiliyor",
     en: "Sending",
@@ -253,6 +265,36 @@ const dictionary = {
     en: "Waiter call could not be sent.",
     ru: "Не удалось отправить вызов официанта.",
     ar: "تعذر إرسال طلب النادل.",
+  },
+  openTableOrder: {
+    tr: "Sipariş Aç",
+    en: "Place Order",
+    ru: "Открыть заказ",
+    ar: "فتح الطلب",
+  },
+  addToOrder: {
+    tr: "Siparişe Ekle",
+    en: "Add to Order",
+    ru: "Добавить в заказ",
+    ar: "أضف للطلب",
+  },
+  tableOrderNotePlaceholder: {
+    tr: "Sipariş notu (örnek: az tuzlu, soğansız).",
+    en: "Order note (e.g. less salt, no onion).",
+    ru: "Комментарий к заказу (например: меньше соли, без лука).",
+    ar: "ملاحظة الطلب (مثال: ملح أقل، بدون بصل).",
+  },
+  selectAtLeastOneMenuItem: {
+    tr: "Sipariş açmadan önce en az bir ürün seçin.",
+    en: "Select at least one menu item before placing an order.",
+    ru: "Выберите хотя бы одну позицию перед отправкой заказа.",
+    ar: "اختر عنصرًا واحدًا على الأقل قبل إرسال الطلب.",
+  },
+  tableOrderFailed: {
+    tr: "Sipariş gönderilemedi.",
+    en: "Order could not be sent.",
+    ru: "Не удалось отправить заказ.",
+    ar: "تعذر إرسال الطلب.",
   },
 } as const;
 

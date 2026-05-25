@@ -29,6 +29,9 @@
 - `socialLinks: { instagram, facebook, x, youtube, tiktok }`
 - `initialPlan: "starter" | "growth" | "premium"` (kayıt anındaki ilk paket)
 - `plan: "starter" | "growth" | "premium"` (güncel paket)
+- `tableCount: number`
+- `floorCount: number` (1-20)
+- `floorTableCounts: number[]` (kat sırasına göre masa adetleri, örn. `[5, 10]`)
 
 Starter deneme takibi:
 - Başlangıç paketi `starter` olan restoranlarda deneme süresi `createdAt` baz alınarak 14 gün olarak hesaplanır.
@@ -85,6 +88,27 @@ Starter deneme takibi:
 - `isArchived: boolean`
 - `createdAt: Timestamp`
 - `updatedAt: Timestamp`
+
+## `restaurants/{restaurantId}/waiterCalls/{callId}`
+- `id: string`
+- `tableNumber: number`
+- `isActive: boolean`
+- `requestedAt: Timestamp`
+- `resolvedAt: Timestamp | null`
+- `updatedAt: Timestamp`
+
+## `restaurants/{restaurantId}/tableOrders/{orderId}`
+- `id: string`
+- `tableNumber: number`
+- `floorNumber: number`
+- `note: string`
+- `items: [{ menuItemId, name, unitPrice, quantity, totalPrice }]`
+- `itemCount: number`
+- `totalAmount: number`
+- `status: "open" | "closed"`
+- `createdAt: Timestamp`
+- `updatedAt: Timestamp`
+- `resolvedAt: Timestamp | null`
 
 ## `systemOrders/{orderId}`
 - `id: string`

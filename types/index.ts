@@ -64,6 +64,8 @@ export interface Restaurant {
   initialPlan: RestaurantPlan;
   plan: RestaurantPlan;
   tableCount: number;
+  floorCount: number;
+  floorTableCounts: number[];
 }
 
 export interface WaiterCall {
@@ -73,6 +75,28 @@ export interface WaiterCall {
   requestedAt: FirestoreDate;
   resolvedAt: FirestoreDate;
   updatedAt: FirestoreDate;
+}
+
+export interface TableOrderItem {
+  menuItemId: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+}
+
+export interface TableOrder {
+  id: string;
+  tableNumber: number;
+  floorNumber: number;
+  note: string;
+  items: TableOrderItem[];
+  itemCount: number;
+  totalAmount: number;
+  status: "open" | "closed";
+  createdAt: FirestoreDate;
+  updatedAt: FirestoreDate;
+  resolvedAt: FirestoreDate;
 }
 
 export interface GalleryImage {

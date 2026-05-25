@@ -124,6 +124,8 @@ export default function SettingsPage() {
         address: values.address,
         isActive: restaurant.isActive,
         tableCount: restaurant.tableCount,
+        floorCount: restaurant.floorCount,
+        floorTableCounts: restaurant.floorTableCounts,
         menuDesign: restaurant.menuDesign,
         socialLinks: restaurant.socialLinks,
       });

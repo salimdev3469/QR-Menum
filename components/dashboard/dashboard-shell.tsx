@@ -12,11 +12,11 @@ import { logout } from "@/services/auth-service";
 
 const navItems = [
   { href: "/dashboard", key: "dashboard" as const },
+  { href: "/dashboard/waiter-calls", key: "waiterCalls" as const },
   { href: "/dashboard/restaurant", key: "restaurant" as const },
   { href: "/dashboard/categories", key: "categories" as const },
   { href: "/dashboard/menu", key: "menuItems" as const },
   { href: "/dashboard/promotions", key: "promotions" as const },
-  { href: "/dashboard/waiter-calls", key: "waiterCalls" as const },
   { href: "/dashboard/qr", key: "qrCode" as const },
   { href: "/dashboard/settings", key: "settings" as const },
 ];

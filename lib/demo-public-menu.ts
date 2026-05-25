@@ -367,6 +367,8 @@ export function getDemoPublicMenuData(slug: string): DemoPublicMenuData | null {
       initialPlan: "starter",
       plan: "starter",
       tableCount: 0,
+      floorCount: 1,
+      floorTableCounts: [0],
     },
     categories: DEMO_CATEGORIES,
     items: DEMO_ITEMS,
