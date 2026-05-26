@@ -20,6 +20,7 @@ interface CreateStandOrderInput {
   email: string;
   phone: string;
   tableCount: number;
+  standModel: StandOrder["standModel"];
   designType: "preset" | "upload";
   designPreset: string | null;
   designUploadUrl: string;
@@ -40,6 +41,7 @@ function normalizeStandOrder(orderId: string, raw: Partial<StandOrder>): StandOr
     tableCount: typeof raw.tableCount === "number" ? raw.tableCount : 1,
     unitPrice: typeof raw.unitPrice === "number" ? raw.unitPrice : STAND_UNIT_PRICE,
     totalPrice: typeof raw.totalPrice === "number" ? raw.totalPrice : STAND_UNIT_PRICE,
+    standModel: raw.standModel === "sticker" || raw.standModel === "button" ? raw.standModel : "stand",
     designType: raw.designType === "upload" ? "upload" : "preset",
     designPreset: raw.designPreset ?? null,
     designUploadUrl: raw.designUploadUrl ?? "",
@@ -66,6 +68,7 @@ export async function createStandOrder(input: CreateStandOrderInput): Promise<st
     tableCount,
     unitPrice: STAND_UNIT_PRICE,
     totalPrice,
+    standModel: input.standModel,
     designType: input.designType,
     designPreset: input.designType === "preset" ? input.designPreset ?? null : null,
     designUploadUrl: input.designUploadUrl,

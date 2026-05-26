@@ -7,6 +7,7 @@ import { Alert } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useLocale } from "@/hooks/use-locale";
+import { getStandModelLabel } from "@/lib/stand-products";
 import {
   AdminOverview,
   getAdminOverview,
@@ -47,6 +48,7 @@ const ADMIN_OVERVIEW_COPY = {
     annual: "Yıllık",
     monthly: "Aylık",
     table: "masa",
+    standModel: "Model",
   },
   en: {
     partialLoadError: "Some admin data could not be loaded. Check Firestore admin permissions.",
@@ -67,12 +69,14 @@ const ADMIN_OVERVIEW_COPY = {
     annual: "Annual",
     monthly: "Monthly",
     table: "tables",
+    standModel: "Model",
   },
 } as const;
 
 export default function AdminOverviewPage() {
   const { locale } = useLocale();
   const copy = locale === "tr" ? ADMIN_OVERVIEW_COPY.tr : ADMIN_OVERVIEW_COPY.en;
+  const standLocale = locale === "tr" ? "tr" : "en";
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<AdminOverview>(emptyOverview);
   const [recentStandOrders, setRecentStandOrders] = useState<StandOrder[]>([]);
@@ -196,6 +200,13 @@ export default function AdminOverviewPage() {
                   <p className="font-semibold text-slate-900">{item.businessName}</p>
                   <p className="text-xs text-slate-500">
                     {item.tableCount} {copy.table} / ₺{item.totalPrice.toLocaleString("tr-TR")}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {copy.standModel}:{" "}
+                    {getStandModelLabel(
+                      item.standModel === "sticker" || item.standModel === "button" ? item.standModel : "stand",
+                      standLocale,
+                    )}
                   </p>
                   <p className="text-xs text-slate-500">{formatDate(item.createdAt)}</p>
                 </div>

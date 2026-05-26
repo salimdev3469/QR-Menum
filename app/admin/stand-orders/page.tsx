@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useLocale } from "@/hooks/use-locale";
 import { formatDate } from "@/lib/format";
+import { getStandModelLabel } from "@/lib/stand-products";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import {
   listStandOrders,
@@ -25,6 +26,7 @@ const STAND_ORDERS_COPY = {
     noRecords: "Kayıt bulunamadı.",
     business: "İşletme",
     tableAndAmount: "Masa / Tutar",
+    standModel: "Stant Modeli",
     design: "Tasarım",
     contact: "İletişim",
     date: "Tarih",
@@ -48,6 +50,7 @@ const STAND_ORDERS_COPY = {
     noRecords: "No records found.",
     business: "Business",
     tableAndAmount: "Tables / Amount",
+    standModel: "Stand Model",
     design: "Design",
     contact: "Contact",
     date: "Date",
@@ -67,6 +70,7 @@ const STAND_ORDERS_COPY = {
 export default function AdminStandOrdersPage() {
   const { locale } = useLocale();
   const copy = locale === "tr" ? STAND_ORDERS_COPY.tr : STAND_ORDERS_COPY.en;
+  const standLocale = locale === "tr" ? "tr" : "en";
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<StandOrder[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -120,6 +124,7 @@ export default function AdminStandOrdersPage() {
               <tr>
                 <th className="px-3 py-2">{copy.business}</th>
                 <th className="px-3 py-2">{copy.tableAndAmount}</th>
+                <th className="px-3 py-2">{copy.standModel}</th>
                 <th className="px-3 py-2">{copy.design}</th>
                 <th className="px-3 py-2">{copy.contact}</th>
                 <th className="px-3 py-2">{copy.date}</th>
@@ -136,6 +141,12 @@ export default function AdminStandOrdersPage() {
                   <td className="px-3 py-2 text-slate-700">
                     <p>{order.tableCount} {copy.quantity}</p>
                     <p className="font-semibold">₺{order.totalPrice.toLocaleString("tr-TR")}</p>
+                  </td>
+                  <td className="px-3 py-2 text-slate-700">
+                    {getStandModelLabel(
+                      order.standModel === "sticker" || order.standModel === "button" ? order.standModel : "stand",
+                      standLocale,
+                    )}
                   </td>
                   <td className="px-3 py-2 text-slate-700">
                     {order.designType === "preset" ? (

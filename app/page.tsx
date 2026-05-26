@@ -10,6 +10,7 @@ import { SectionDivider } from "@/components/marketing/section-divider";
 import { formatMarketPriceFromTry } from "@/lib/market-pricing";
 import { FAQ_ITEMS, FEATURE_BLOCKS } from "@/lib/marketing-content";
 import { resolveRequestLocaleContext } from "@/lib/request-locale";
+import { getStandProductCards } from "@/lib/stand-products";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import { generateQrDataUrl } from "@/services/qr-service";
 
@@ -245,6 +246,7 @@ export default async function HomePage() {
   const ctaLoadingText = locale === "tr" ? "Yonlendiriliyor..." : "Redirecting...";
   const previewMenu = buildHomepagePreviewMenuConfig();
   const standUnitPrice = formatMarketPriceFromTry(STAND_UNIT_PRICE, pricingCurrency);
+  const standProductCards = getStandProductCards(locale, standUnitPrice);
   const standDescription = copy.standDescription.replace("{{price}}", standUnitPrice);
   const previewQrDataUrl = await generateQrDataUrl(previewMenu.targetUrl).catch(() => "");
 
@@ -471,11 +473,11 @@ export default async function HomePage() {
           sectionLabel={copy.standSectionLabel}
           title={copy.standTitle}
           description={standDescription}
-          imageAlt={copy.standImageAlt}
           primaryCta={copy.standPrimaryCta}
           secondaryCta={copy.standSecondaryCta}
           ctaLoadingText={ctaLoadingText}
           featurePills={standFeaturePills}
+          productCards={standProductCards}
         />
 
         <SectionDivider label={copy.exploreSectionLabel} />

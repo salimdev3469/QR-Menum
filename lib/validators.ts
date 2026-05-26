@@ -153,6 +153,7 @@ export const standOrderSchema = z
     email: z.email("Geçerli bir e-posta girin."),
     phone: z.string().trim().min(7, "Telefon numarası geçersiz."),
     tableCount: z.number().int().min(1, "En az 1 masa olmalı."),
+    standModel: z.enum(["stand", "sticker", "button"]),
     designType: z.enum(["preset", "upload"]),
     designPreset: z.string().trim(),
     note: z.string().trim().max(500).optional(),

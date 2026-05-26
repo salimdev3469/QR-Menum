@@ -17,6 +17,7 @@ import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useLocale } from "@/hooks/use-locale";
 import { formatMarketPriceFromTry } from "@/lib/market-pricing";
+import { getStandProductItems } from "@/lib/stand-products";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import { Textarea } from "@/components/ui/textarea";
 import { standOrderSchema } from "@/lib/validators";
@@ -33,13 +34,14 @@ const designPresets = [
 type StandOrderValues = z.infer<typeof standOrderSchema>;
 
 export default function StandsPage() {
-  const { pricingCurrency, isInternationalVisitor } = useLocale();
+  const { locale, pricingCurrency, isInternationalVisitor } = useLocale();
   const [file, setFile] = useState<File | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { errors, isSubmitting },
     reset,
@@ -51,6 +53,7 @@ export default function StandsPage() {
       email: "",
       phone: "",
       tableCount: 10,
+      standModel: "stand",
       designType: "preset",
       designPreset: designPresets[0],
       note: "",
@@ -58,7 +61,14 @@ export default function StandsPage() {
   });
 
   const tableCount = watch("tableCount") || 0;
+  const selectedStandId = watch("standModel") ?? "stand";
   const designType = watch("designType");
+  const standLocale = locale === "tr" ? "tr" : "en";
+  const standProducts = useMemo(() => getStandProductItems(standLocale), [standLocale]);
+  const selectedStand = useMemo(
+    () => standProducts.find((item) => item.id === selectedStandId) ?? standProducts[0],
+    [selectedStandId, standProducts],
+  );
   const totalPriceTry = useMemo(() => Math.max(0, tableCount) * STAND_UNIT_PRICE, [tableCount]);
   const unitPriceLabel = formatMarketPriceFromTry(STAND_UNIT_PRICE, pricingCurrency);
   const totalPriceLabel = formatMarketPriceFromTry(totalPriceTry, pricingCurrency);
@@ -92,6 +102,7 @@ export default function StandsPage() {
         email: values.email,
         phone: values.phone,
         tableCount: values.tableCount,
+        standModel: values.standModel,
         designType: values.designType,
         designPreset: values.designType === "preset" ? values.designPreset : null,
         designUploadUrl,
@@ -104,6 +115,7 @@ export default function StandsPage() {
         email: "",
         phone: "",
         tableCount: 10,
+        standModel: "stand",
         designType: "preset",
         designPreset: designPresets[0],
         note: "",
@@ -160,6 +172,19 @@ export default function StandsPage() {
               <Input type="number" {...register("tableCount", { valueAsNumber: true })} />
               {errors.tableCount ? (
                 <p className="mt-1 text-xs text-rose-600">{errors.tableCount.message}</p>
+              ) : null}
+            </div>
+            <div>
+              <Label>Stant Modeli</Label>
+              <Select {...register("standModel")}>
+                {standProducts.map((standProduct) => (
+                  <option key={standProduct.id} value={standProduct.id}>
+                    {standProduct.title}
+                  </option>
+                ))}
+              </Select>
+              {errors.standModel ? (
+                <p className="mt-1 text-xs text-rose-600">{errors.standModel.message}</p>
               ) : null}
             </div>
             <div>
@@ -221,12 +246,41 @@ export default function StandsPage() {
         <Card className="h-fit space-y-4">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
             <Image
-              src="/qr_stand.png"
-              alt="QR menü stand örneği"
+              src={selectedStand.imageSrc}
+              alt={selectedStand.imageAlt}
               width={1122}
               height={1402}
               className="h-auto w-full object-cover"
             />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {standProducts.map((standProduct) => {
+              const isSelected = standProduct.id === selectedStandId;
+
+              return (
+                <button
+                  key={standProduct.id}
+                  type="button"
+                  onClick={() => setValue("standModel", standProduct.id, { shouldDirty: true, shouldValidate: true })}
+                  className={`rounded-xl border p-2 text-left transition ${
+                    isSelected
+                      ? "border-emerald-500 bg-emerald-50 shadow-[0_0_0_1px_rgba(16,185,129,0.25)]"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
+                    <Image
+                      src={standProduct.imageSrc}
+                      alt={standProduct.imageAlt}
+                      fill
+                      sizes="(max-width: 640px) 33vw, 120px"
+                      className="object-contain p-2"
+                    />
+                  </div>
+                  <p className="mt-2 text-xs font-semibold text-slate-700">{standProduct.title}</p>
+                </button>
+              );
+            })}
           </div>
 
           <h2 className="text-lg font-bold text-slate-900">Sipariş Özeti</h2>
@@ -236,6 +290,9 @@ export default function StandsPage() {
             </p>
             <p>
               <span className="font-semibold">Masa sayısı:</span> {tableCount}
+            </p>
+            <p>
+              <span className="font-semibold">Stant modeli:</span> {selectedStand.title}
             </p>
             <p className="text-base">
               <span className="font-semibold">Toplam:</span>{" "}
