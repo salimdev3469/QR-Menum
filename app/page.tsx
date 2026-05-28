@@ -1,15 +1,17 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
 import { PricingGrid } from "@/components/marketing/pricing-grid";
+import { JsonLd } from "@/components/seo/json-ld";
 import { SessionAwarePrimaryCta } from "@/components/marketing/session-aware-primary-cta";
 import { StandShowcaseSection } from "@/components/marketing/stand-showcase-section";
 import { LoadingLink } from "@/components/ui/loading-link";
 import { SectionDivider } from "@/components/marketing/section-divider";
 import { formatMarketPriceFromTry } from "@/lib/market-pricing";
 import { FAQ_ITEMS, FEATURE_BLOCKS } from "@/lib/marketing-content";
-import { resolveRequestLocaleContext } from "@/lib/request-locale";
+import { buildJsonLd, buildPageMetadata, toAbsoluteUrl } from "@/lib/seo";
 import { getStandProductCards } from "@/lib/stand-products";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import { generateQrDataUrl } from "@/services/qr-service";
@@ -34,6 +36,20 @@ interface LanguageFlag {
   src: string;
   alt: string;
 }
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "QR Menü ve Restoran Yönetim Sistemi",
+  description:
+    "QR Menüm ile dijital menü yönetimi, kampanya kurgusu ve restoran operasyon akışını tek panelden yönetin.",
+  path: "/",
+  keywords: [
+    "qr menü",
+    "restoran yönetim sistemi",
+    "dijital menü",
+    "restoran adisyon yazılımı",
+    "garson çağrı sistemi",
+  ],
+});
 
 function buildHomepagePreviewMenuConfig(): { targetUrl: string; displayUrl: string } {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
@@ -83,6 +99,8 @@ const QUICK_LINKS: Record<HomeLocale, QuickLink[]> = {
     { href: "/pricing", title: "Paketler", text: "İşletmenize uygun planı seçin." },
     { href: "/purchase", title: "Sistem Satın Al", text: "Satış ekibine plan talebi bırakın." },
     { href: "/stands", title: "QR Stant Siparişi", text: "Masa sayısına göre stant siparişi verin." },
+    { href: "/blog", title: "Blog", text: "QR menü ve restoran yönetimi rehberlerini okuyun." },
+    { href: "/qr-menu-sistemi", title: "QR Menü Sistemi", text: "İşletmenize uygun çözüm yapısını inceleyin." },
     { href: "/about", title: "Hakkımızda", text: "Platform yaklaşımımızı öğrenin." },
     { href: "/contact", title: "İletişim", text: "Satış ve destek ekibine ulaşın." },
   ],
@@ -234,8 +252,8 @@ const HOME_COPY = {
 } as const;
 
 export default async function HomePage() {
-  const requestContext = await resolveRequestLocaleContext();
-  const { locale, pricingCurrency } = requestContext;
+  const locale: HomeLocale = "tr";
+  const pricingCurrency = "TRY";
   const copy = HOME_COPY[locale];
   const sloganItems = SLOGAN_ITEMS[locale];
   const quickLinks = QUICK_LINKS[locale];
@@ -250,8 +268,41 @@ export default async function HomePage() {
   const standDescription = copy.standDescription.replace("{{price}}", standUnitPrice);
   const previewQrDataUrl = await generateQrDataUrl(previewMenu.targetUrl).catch(() => "");
 
+  const organizationJsonLd = buildJsonLd("Organization", {
+    name: "QR Menüm",
+    url: toAbsoluteUrl("/"),
+    logo: toAbsoluteUrl("/apple-icon.png"),
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "sales",
+      email: "salimaka2014@gmail.com",
+      telephone: "+90-553-351-7769",
+      areaServed: "TR",
+    },
+  });
+
+  const websiteJsonLd = buildJsonLd("WebSite", {
+    name: "QR Menüm",
+    url: toAbsoluteUrl("/"),
+    inLanguage: "tr-TR",
+  });
+
+  const softwareJsonLd = buildJsonLd("SoftwareApplication", {
+    name: "QR Menüm",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "790",
+      priceCurrency: "TRY",
+      url: toAbsoluteUrl("/pricing"),
+      availability: "https://schema.org/InStock",
+    },
+  });
+
   return (
     <div className="relative overflow-hidden" lang={locale}>
+      <JsonLd data={[organizationJsonLd, websiteJsonLd, softwareJsonLd]} />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(16,185,129,0.18),transparent_34%),radial-gradient(circle_at_88%_16%,rgba(14,165,233,0.16),transparent_38%),radial-gradient(circle_at_50%_84%,rgba(249,115,22,0.12),transparent_36%)]" />
 
       <MarketingHeader locale={locale} />
@@ -285,7 +336,7 @@ export default async function HomePage() {
 
             <div className="grid gap-3 sm:grid-cols-3 sm:items-stretch">
               {stats.map((item) => {
-                const isEnglishLanguageStat = locale === "en" && item.showFlags;
+                const isEnglishLanguageStat = Boolean(item.showFlags);
                 const valueClassName = isEnglishLanguageStat
                   ? "mt-0.5 max-w-full font-extrabold tracking-tight text-slate-900"
                   : "mt-0.5 max-w-full text-[2rem] font-extrabold leading-tight tracking-tight text-slate-900 text-balance sm:text-[2.1rem] lg:text-[2.2rem]";
@@ -321,6 +372,7 @@ export default async function HomePage() {
                                 alt={flag.alt}
                                 width={30}
                                 height={20}
+                                sizes="30px"
                                 className="h-[20px] w-[30px] object-cover"
                                 priority={false}
                               />
@@ -364,6 +416,7 @@ export default async function HomePage() {
                         alt={copy.qrImageAlt}
                         width={1272}
                         height={1278}
+                        sizes="(max-width: 768px) 75vw, 320px"
                         className="h-auto w-full"
                         unoptimized
                       />
@@ -373,6 +426,7 @@ export default async function HomePage() {
                         alt={copy.qrImageAlt}
                         width={1272}
                         height={1278}
+                        sizes="(max-width: 768px) 75vw, 320px"
                         className="h-auto w-full"
                         priority={false}
                       />
@@ -451,12 +505,13 @@ export default async function HomePage() {
               <div className="relative mx-auto w-full max-w-sm pb-4 pr-3 lg:max-w-md lg:pb-6 lg:pr-6">
                 <div className="absolute inset-x-8 bottom-2 h-16 rounded-full bg-slate-400/35 blur-2xl" />
                 <Image
-                  src="/customer-qr-showcase.png"
+                  src="/customer-qr-showcase.jpg"
                   alt={copy.liveImageAlt}
                   width={447}
                   height={558}
+                  sizes="(max-width: 1024px) 90vw, 420px"
                   className="relative ml-auto h-auto w-[92%] object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.38)]"
-                  priority={false}
+                  priority
                 />
               </div>
             </div>

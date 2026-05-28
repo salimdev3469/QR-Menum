@@ -21,6 +21,7 @@ const NAV_LINKS: Record<MarketingLocale, MarketingLink[]> = {
   en: [
     { href: "/features", label: "Features" },
     { href: "/pricing", label: "Pricing" },
+    { href: "/blog", label: "Blog" },
     { href: "/stands", label: "QR Stands" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },

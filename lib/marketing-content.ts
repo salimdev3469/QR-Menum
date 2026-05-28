@@ -23,6 +23,7 @@ export interface FeatureBlock {
 export const MARKETING_NAV_LINKS: MarketingLink[] = [
   { href: "/features", label: "Özellikler" },
   { href: "/pricing", label: "Fiyatlandırma" },
+  { href: "/blog", label: "Blog" },
   { href: "/stands", label: "QR Stant" },
   { href: "/about", label: "Hakkımızda" },
   { href: "/contact", label: "İletişim" },

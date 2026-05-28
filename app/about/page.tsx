@@ -3,11 +3,14 @@ import Link from "next/link";
 
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { SectionDivider } from "@/components/marketing/section-divider";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Hakkımızda | QR Menüm",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Hakkımızda",
   description: "QR Menüm vizyonu, yaklaşımı ve ürün prensipleri.",
-};
+  path: "/about",
+  keywords: ["hakkımızda qr menü", "qr menüm vizyonu", "restoran dijitalleşme"],
+});
 
 const principles = [
   {
@@ -26,7 +29,7 @@ const principles = [
 
 export default function AboutPage() {
   return (
-    <MarketingPageShell>
+    <MarketingPageShell locale="tr">
       <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-sm">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Hakkımızda</p>
         <h1 className="mt-2 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">

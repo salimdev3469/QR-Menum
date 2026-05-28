@@ -2,45 +2,66 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
+import { JsonLd } from "@/components/seo/json-ld";
 import { PricingGrid } from "@/components/marketing/pricing-grid";
 import { SectionDivider } from "@/components/marketing/section-divider";
-import { FAQ_ITEMS, FAQ_ITEMS_EN } from "@/lib/marketing-content";
-import { resolveRequestLocaleContext } from "@/lib/request-locale";
+import { FAQ_ITEMS } from "@/lib/marketing-content";
+import { buildBreadcrumbJsonLd, buildJsonLd, buildPageMetadata, toAbsoluteUrl } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Fiyatlandırma | QR Menüm",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Fiyatlandırma",
   description: "Starter, Growth ve Premium plan karşılaştırması.",
-};
+  path: "/pricing",
+  keywords: ["qr menü fiyatları", "restoran yazılım fiyatlandırma", "dijital menü paketleri"],
+});
 
 const PRICING_PAGE_COPY = {
-  tr: {
-    faqLabel: "Sık Sorulanlar",
-    decisionLabel: "Karar Ver",
-    trialTitle: "14 gün ücretsiz dene",
-    trialDescription: "Kart bilgisi girmeden hesabını açıp tüm ana akışı test edebilirsin.",
-    startNow: "Hemen Başla",
-    consultSales: "Satışa Danış",
-  },
-  en: {
-    faqLabel: "Frequently Asked Questions",
-    decisionLabel: "Decide",
-    trialTitle: "Try 14 days free",
-    trialDescription: "Create your account without card details and test the full core flow.",
-    startNow: "Start Now",
-    consultSales: "Talk to Sales",
-  },
+  faqLabel: "Sık Sorulanlar",
+  decisionLabel: "Karar Ver",
+  trialTitle: "14 gün ücretsiz dene",
+  trialDescription: "Kart bilgisi girmeden hesabını açıp tüm ana akışı test edebilirsin.",
+  startNow: "Hemen Başla",
+  consultSales: "Satışa Danış",
 } as const;
 
 export default async function PricingPage() {
-  const requestContext = await resolveRequestLocaleContext();
-  const { locale, pricingCurrency } = requestContext;
-  const copy = PRICING_PAGE_COPY[locale];
-  const faqItems = locale === "tr" ? FAQ_ITEMS : FAQ_ITEMS_EN;
+  const copy = PRICING_PAGE_COPY;
+  const faqItems = FAQ_ITEMS;
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Ana Sayfa", path: "/" },
+    { name: "Fiyatlandırma", path: "/pricing" },
+  ]);
+
+  const softwareJsonLd = buildJsonLd("SoftwareApplication", {
+    name: "QR Menüm",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      url: toAbsoluteUrl("/pricing"),
+      priceCurrency: "TRY",
+      price: "790",
+      availability: "https://schema.org/InStock",
+    },
+  });
+
+  const faqJsonLd = buildJsonLd("FAQPage", {
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  });
 
   return (
-    <MarketingPageShell locale={locale}>
+    <MarketingPageShell locale="tr">
+      <JsonLd data={[breadcrumbJsonLd, softwareJsonLd, faqJsonLd]} />
       <section>
-        <PricingGrid locale={locale} pricingCurrency={pricingCurrency} />
+        <PricingGrid locale="tr" pricingCurrency="TRY" />
       </section>
 
       <SectionDivider label={copy.faqLabel} />

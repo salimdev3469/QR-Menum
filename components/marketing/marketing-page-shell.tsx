@@ -9,7 +9,7 @@ import type { MarketingLocale } from "@/lib/request-locale";
 export function MarketingPageShell({
   children,
   className = "",
-  locale,
+  locale = "tr",
 }: PropsWithChildren<{ className?: string; locale?: MarketingLocale }>) {
   return (
     <div className="relative overflow-hidden">

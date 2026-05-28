@@ -4,15 +4,18 @@ import Link from "next/link";
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { SectionDivider } from "@/components/marketing/section-divider";
 import { FEATURE_BLOCKS } from "@/lib/marketing-content";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Özellikler | QR Menüm",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Özellikler",
   description: "QR Menüm ürün modülleri: varyasyon, alerjen, etiket, kampanya ve sosyal medya.",
-};
+  path: "/features",
+  keywords: ["qr menü özellikleri", "restoran menü modülleri", "dijital menü yönetimi"],
+});
 
 export default function FeaturesPage() {
   return (
-    <MarketingPageShell>
+    <MarketingPageShell locale="tr">
       <section className="rounded-[2rem] border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Özellikler</p>
         <h1 className="mt-2 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">

@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { SectionDivider } from "@/components/marketing/section-divider";
-import { resolveRequestLocale } from "@/lib/request-locale";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Gizlilik Politikası | QR Menüm",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Gizlilik Politikası",
   description: "AKA YAZILIM tarafından sunulan QR Menüm gizlilik politikası.",
-};
+  path: "/privacy",
+});
 
 const PRIVACY_CONTENT = {
   tr: {
@@ -139,11 +140,10 @@ const PRIVACY_CONTENT = {
 } as const;
 
 export default async function PrivacyPage() {
-  const locale = await resolveRequestLocale();
-  const content = PRIVACY_CONTENT[locale];
+  const content = PRIVACY_CONTENT.tr;
 
   return (
-    <MarketingPageShell locale={locale}>
+    <MarketingPageShell locale="tr">
       <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-sm">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{content.legalLabel}</p>
         <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">{content.title}</h1>

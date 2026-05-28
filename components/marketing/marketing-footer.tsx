@@ -24,6 +24,7 @@ const NAV_LINKS: Record<MarketingLocale, MarketingLink[]> = {
   en: [
     { href: "/features", label: "Features" },
     { href: "/pricing", label: "Pricing" },
+    { href: "/blog", label: "Blog" },
     { href: "/stands", label: "QR Stands" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
@@ -97,7 +98,15 @@ export function MarketingFooter({ locale }: MarketingFooterProps) {
   const contactChannels = CONTACT_CHANNELS_BY_LOCALE[resolvedLocale];
   const legalLinks = LEGAL_LINKS[resolvedLocale];
   const copy = FOOTER_COPY[resolvedLocale];
-  const allSitemapLinks = [...navLinks, { href: "/faq", label: copy.faqLabel }];
+  const allSitemapLinks = [
+    ...navLinks,
+    { href: "/faq", label: copy.faqLabel },
+    { href: "/qr-menu-sistemi", label: resolvedLocale === "tr" ? "QR Menü Sistemi" : "QR Menu System" },
+    {
+      href: "/restoran-yonetim-sistemi",
+      label: resolvedLocale === "tr" ? "Restoran Yönetim Sistemi" : "Restaurant Management System",
+    },
+  ];
 
   const isActiveLink = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 

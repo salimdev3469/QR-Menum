@@ -4,11 +4,14 @@ import Link from "next/link";
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { SectionDivider } from "@/components/marketing/section-divider";
 import { CONTACT_CHANNELS } from "@/lib/marketing-content";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "İletişim | QR Menüm",
+export const metadata: Metadata = buildPageMetadata({
+  title: "İletişim",
   description: "Satış ve destek ekibi iletişim sayfası.",
-};
+  path: "/contact",
+  keywords: ["qr menü iletişim", "restoran yazılımı satış", "qr menüm destek"],
+});
 
 const quickActions = [
   { title: "Yeni Müşteri", text: "Paket seçimi ve demo akışı için bizimle görüş.", href: "/pricing" },
@@ -18,7 +21,7 @@ const quickActions = [
 
 export default function ContactPage() {
   return (
-    <MarketingPageShell>
+    <MarketingPageShell locale="tr">
       <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-sm">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">İletişim</p>
         <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">

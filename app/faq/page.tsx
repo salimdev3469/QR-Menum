@@ -2,13 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
+import { JsonLd } from "@/components/seo/json-ld";
 import { SectionDivider } from "@/components/marketing/section-divider";
 import { FAQ_ITEMS } from "@/lib/marketing-content";
+import { buildBreadcrumbJsonLd, buildJsonLd, buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "SSS | QR Menüm",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Sık Sorulan Sorular",
   description: "QR Menüm sık sorulan sorular sayfası.",
-};
+  path: "/faq",
+  keywords: ["qr menü sss", "restoran yazılımı soruları", "dijital menü destek"],
+});
 
 const extraQuestions = [
   {
@@ -30,8 +34,25 @@ const extraQuestions = [
 ];
 
 export default function FaqPage() {
+  const faqJsonLd = buildJsonLd("FAQPage", {
+    mainEntity: [...FAQ_ITEMS, ...extraQuestions].map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  });
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Ana Sayfa", path: "/" },
+    { name: "Sık Sorulan Sorular", path: "/faq" },
+  ]);
+
   return (
-    <MarketingPageShell>
+    <MarketingPageShell locale="tr">
+      <JsonLd data={[faqJsonLd, breadcrumbJsonLd]} />
       <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-sm">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Sık Sorulan Sorular</p>
         <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">

@@ -1,6 +1,6 @@
 import { MarketingLocale } from "@/lib/request-locale";
 
-export type StandModel = "stand" | "sticker" | "button";
+export type StandModel = "stand" | "sticker";
 
 export interface StandProductItem {
   id: StandModel;
@@ -22,7 +22,7 @@ const STAND_PRODUCTS_BASE: Array<{
 }> = [
   {
     id: "stand",
-    imageSrc: "/qr_stand.png",
+    imageSrc: "/qr_stand.jpg",
     title: {
       tr: "Klasik Stant",
       en: "Classic Stand",
@@ -34,7 +34,7 @@ const STAND_PRODUCTS_BASE: Array<{
   },
   {
     id: "sticker",
-    imageSrc: "/sticker.png",
+    imageSrc: "/sticker.jpg",
     title: {
       tr: "Sticker",
       en: "Sticker",
@@ -44,19 +44,6 @@ const STAND_PRODUCTS_BASE: Array<{
       en: "Sticker QR product image",
     },
     fixedPriceLabel: "40 TL",
-  },
-  {
-    id: "button",
-    imageSrc: "/butonlu.png",
-    title: {
-      tr: "Butonlu",
-      en: "Button Model",
-    },
-    imageAlt: {
-      tr: "Butonlu QR ürün görseli",
-      en: "Button QR product image",
-    },
-    fixedPriceLabel: "160 TL",
   },
 ];
 

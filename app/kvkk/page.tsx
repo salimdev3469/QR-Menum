@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { SectionDivider } from "@/components/marketing/section-divider";
-import { resolveRequestLocaleContext } from "@/lib/request-locale";
+import { buildPageMetadata } from "@/lib/seo";
 
 const LEGAL_DISCLOSURE_CONTENT = {
   tr: {
@@ -138,29 +138,17 @@ const LEGAL_DISCLOSURE_CONTENT = {
   },
 } as const;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const requestContext = await resolveRequestLocaleContext();
-
-  if (requestContext.market === "tr") {
-    return {
-      title: "KVKK Aydınlatma Metni | QR Menüm",
-      description: "QR Menüm kişisel veri işleme süreçlerine ilişkin KVKK aydınlatma metni.",
-    };
-  }
-
-  return {
-    title: "GDPR Data Protection Notice | QR Menüm",
-    description: "GDPR-focused data protection notice for visitors and customers outside Türkiye.",
-  };
-}
+export const metadata: Metadata = buildPageMetadata({
+  title: "KVKK Aydınlatma Metni",
+  description: "QR Menüm kişisel veri işleme süreçlerine ilişkin KVKK aydınlatma metni.",
+  path: "/kvkk",
+});
 
 export default async function KvkkPage() {
-  const requestContext = await resolveRequestLocaleContext();
-  const { locale, market } = requestContext;
-  const content = market === "tr" ? LEGAL_DISCLOSURE_CONTENT.tr : LEGAL_DISCLOSURE_CONTENT.international;
+  const content = LEGAL_DISCLOSURE_CONTENT.tr;
 
   return (
-    <MarketingPageShell locale={locale}>
+    <MarketingPageShell locale="tr">
       <section className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-sm">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{content.legalLabel}</p>
         <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">{content.title}</h1>
