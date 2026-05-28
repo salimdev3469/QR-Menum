@@ -133,7 +133,7 @@ Starter deneme takibi:
 - `tableCount: number`
 - `unitPrice: number` (50)
 - `totalPrice: number`
-- `standModel: "stand" | "sticker" | "button"`
+- `standModel: "stand" | "sticker"`
 - `designType: "preset" | "upload"`
 - `designPreset: string | null`
 - `designUploadUrl: string`

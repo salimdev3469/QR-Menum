@@ -17,7 +17,7 @@ import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useLocale } from "@/hooks/use-locale";
 import { formatMarketPriceFromTry } from "@/lib/market-pricing";
-import { getStandProductItems } from "@/lib/stand-products";
+import { getStandProductItems, StandModel } from "@/lib/stand-products";
 import { STAND_UNIT_PRICE } from "@/lib/stand-pricing";
 import { Textarea } from "@/components/ui/textarea";
 import { standOrderSchema } from "@/lib/validators";
@@ -36,6 +36,7 @@ type StandOrderValues = z.infer<typeof standOrderSchema>;
 export default function StandsPage() {
   const { locale, pricingCurrency, isInternationalVisitor } = useLocale();
   const [file, setFile] = useState<File | null>(null);
+  const [selectedStandId, setSelectedStandId] = useState<StandModel>("stand");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const {
@@ -60,8 +61,8 @@ export default function StandsPage() {
     },
   });
 
+  const standModelField = register("standModel");
   const tableCount = watch("tableCount") || 0;
-  const selectedStandId = watch("standModel") ?? "stand";
   const designType = watch("designType");
   const standLocale = locale === "tr" ? "tr" : "en";
   const standProducts = useMemo(() => getStandProductItems(standLocale), [standLocale]);
@@ -120,6 +121,7 @@ export default function StandsPage() {
         designPreset: designPresets[0],
         note: "",
       });
+      setSelectedStandId("stand");
       setFile(null);
       setFeedback({
         type: "success",
@@ -176,7 +178,14 @@ export default function StandsPage() {
             </div>
             <div>
               <Label>Stant Modeli</Label>
-              <Select {...register("standModel")}>
+              <Select
+                {...standModelField}
+                value={selectedStandId}
+                onChange={(event) => {
+                  standModelField.onChange(event);
+                  setSelectedStandId(event.target.value as StandModel);
+                }}
+              >
                 {standProducts.map((standProduct) => (
                   <option key={standProduct.id} value={standProduct.id}>
                     {standProduct.title}
@@ -261,7 +270,10 @@ export default function StandsPage() {
                 <button
                   key={standProduct.id}
                   type="button"
-                  onClick={() => setValue("standModel", standProduct.id, { shouldDirty: true, shouldValidate: true })}
+                  onClick={() => {
+                    setSelectedStandId(standProduct.id);
+                    setValue("standModel", standProduct.id, { shouldDirty: true, shouldValidate: true });
+                  }}
                   className={`rounded-xl border p-2 text-left transition ${
                     isSelected
                       ? "border-emerald-500 bg-emerald-50 shadow-[0_0_0_1px_rgba(16,185,129,0.25)]"

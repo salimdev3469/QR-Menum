@@ -204,7 +204,7 @@ export default function AdminOverviewPage() {
                   <p className="text-xs text-slate-500">
                     {copy.standModel}:{" "}
                     {getStandModelLabel(
-                      item.standModel === "sticker" || item.standModel === "button" ? item.standModel : "stand",
+                      item.standModel === "sticker" ? "sticker" : "stand",
                       standLocale,
                     )}
                   </p>

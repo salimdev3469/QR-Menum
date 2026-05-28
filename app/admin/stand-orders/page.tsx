@@ -144,7 +144,7 @@ export default function AdminStandOrdersPage() {
                   </td>
                   <td className="px-3 py-2 text-slate-700">
                     {getStandModelLabel(
-                      order.standModel === "sticker" || order.standModel === "button" ? order.standModel : "stand",
+                      order.standModel === "sticker" ? "sticker" : "stand",
                       standLocale,
                     )}
                   </td>

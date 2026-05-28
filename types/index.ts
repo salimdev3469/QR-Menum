@@ -165,7 +165,7 @@ export interface StandOrder {
   tableCount: number;
   unitPrice: number;
   totalPrice: number;
-  standModel: "stand" | "sticker" | "button";
+  standModel: "stand" | "sticker";
   designType: "preset" | "upload";
   designPreset: string | null;
   designUploadUrl: string;

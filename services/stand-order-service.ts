@@ -41,7 +41,7 @@ function normalizeStandOrder(orderId: string, raw: Partial<StandOrder>): StandOr
     tableCount: typeof raw.tableCount === "number" ? raw.tableCount : 1,
     unitPrice: typeof raw.unitPrice === "number" ? raw.unitPrice : STAND_UNIT_PRICE,
     totalPrice: typeof raw.totalPrice === "number" ? raw.totalPrice : STAND_UNIT_PRICE,
-    standModel: raw.standModel === "sticker" || raw.standModel === "button" ? raw.standModel : "stand",
+    standModel: raw.standModel === "sticker" ? "sticker" : "stand",
     designType: raw.designType === "upload" ? "upload" : "preset",
     designPreset: raw.designPreset ?? null,
     designUploadUrl: raw.designUploadUrl ?? "",
